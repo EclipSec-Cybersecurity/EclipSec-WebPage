@@ -45,7 +45,7 @@ ul {
 }
 
 ul li {
-  background-color: #e8e8e8;
+  background-color: #17004d;
   margin-bottom: 8px;
   padding: 10px 15px;
   border-left: 5px solid #0a84ff;
@@ -54,7 +54,7 @@ ul li {
 }
 
 ul li:hover {
-  background-color: #dbeaff;
+  background-color: #17004d;
 }
 
 section {
