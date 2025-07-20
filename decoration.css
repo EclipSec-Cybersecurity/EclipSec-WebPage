@@ -1,3 +1,4 @@
+
 * {
   margin: 0;
   padding: 0;
@@ -7,7 +8,7 @@
 
 body {
   font-family: 'Segoe UI', sans-serif;
-  background-color: #f2f4f8;
+  background-color: #03276e;
   color: #1f1f1f;
   line-height: 1.6;
   padding-bottom: 80px;
@@ -45,7 +46,7 @@ ul {
 }
 
 ul li {
-  background-color: #17004d;
+  background-color: #e8e8e8;
   margin-bottom: 8px;
   padding: 10px 15px;
   border-left: 5px solid #0a84ff;
@@ -54,7 +55,7 @@ ul li {
 }
 
 ul li:hover {
-  background-color: #17004d;
+  background-color: #dbeaff;
 }
 
 section {
