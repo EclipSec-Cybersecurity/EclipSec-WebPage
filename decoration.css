@@ -82,3 +82,28 @@ footer {
   font-size: 0.9rem;
   border-top: 1px solid #333;
 }
+
+.galeria-trabajos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.trabajo img {
+  max-width: 300px;
+  width: 100%; 
+  height: auto; 
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+}
+
+.trabajo img:hover {
+  transform: scale(1.05);
+}
+
+.trabajo p {
+  text-align: center;
+  margin-top: 10px;
+}
