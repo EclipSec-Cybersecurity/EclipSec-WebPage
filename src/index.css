@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0A0A0A;
+  --color-surface: #1A1A1A;
+  --color-primary: #D32F2F;
+  --color-primary-hover: #B71C1C;
+  --color-accent: #FF5252;
+  --color-text: #E0E0E0;
+  --color-text-muted: #A0A0A0;
+  --color-heading: #FFFFFF;
+  --color-border: #333333;
+
+  --font-sans: Inter, sans-serif;
+  --font-code: Fira Code, monospace;
+}
+
+@layer base {
+  :root {
+    /* Default Dark Theme (matches @theme) */
+    --color-background-value: #0A0A0A;
+    --color-surface-value: #1A1A1A;
+    --color-text-value: #E0E0E0;
+    --color-text-muted-value: #A0A0A0;
+    --color-heading-value: #FFFFFF;
+    --color-border-value: #333333;
+  }
+
+  :root[data-theme="light"] {
+    /* Light Theme Overrides - Refined */
+    --color-background: #E5E5E5;
+    /* Darker grey to reduce glare */
+    --color-surface: #F9FAFB;
+    /* Soft white (gray-50) for surface */
+    --color-text: #374151;
+    /* Gray-700 for text */
+    --color-text-muted: #6B7280;
+    /* Gray-500 */
+    --color-heading: #111827;
+    /* Gray-900 for headings */
+    --color-border: #D1D5DB;
+    /* Gray-300 */
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
