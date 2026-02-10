@@ -1,0 +1,78 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "contact_secure": "Encrypted Contact",
+        "get_started": "Get Started",
+        "services": "Services",
+        "about": "About Us",
+        "contact": "Contact",
+        "language": "Language",
+        "form": {
+            "title": "Let's Talk Security",
+            "subtitle": "Fill out the form and our expert team will contact you shortly.",
+            "info_title": "Contact Information",
+            "email_title": "Email Address",
+            "location_title": "Location",
+            "location_value": "Coquimbo, Chile",
+            "area_title": "Service Area",
+            "area_value": "Remote & On-site Consulting",
+            "legal_nda": "Your data will be treated with strict confidentiality under NDA (Non-Disclosure Agreement).",
+            "name_label": "Full Name",
+            "company_label": "Company / Organization",
+            "email_label": "Corporate Email",
+            "message_label": "Requirement Details",
+            "send_btn": "Start Secure Communication",
+            "send_another": "Send another message",
+            "optional": "Optional",
+            "message_placeholder": "Project description or audit requirements...",
+            "success_title": "Request Received",
+            "success_desc": "We will analyze your request and respond via encrypted channel.",
+            "validation": {
+                "name_required": "Name is required",
+                "email_invalid": "Invalid email address",
+                "message_min": "Please provide more details (min. 10 chars)"
+            }
+        }
+    },
+    "about": {
+        "title": "Who We Are",
+        "subtitle": "Meet the people behind the initiative.",
+        "team": {
+            "students": {
+                "title": "UCN Students",
+                "description": "We are IT Engineering students at Universidad Católica del Norte (UCN), specializing in Cybersecurity and currently in our final academic year."
+            },
+            "experience": {
+                "title": "Experience & Efficiency",
+                "description": "Thanks to our academic journey, we possess strong project management skills, prioritizing client needs and applying agile methodologies."
+            },
+            "support": {
+                "title": "Constant Support",
+                "description": "Our vision doesn't end with project delivery. We provide ongoing support and assistance to ensure a seal of quality."
+            }
+        }
+    },
+    "hero": {
+        "title": "We Audit the Invisible. We Protect the Essential.",
+        "subtitle": "Specialized consulting in Pentesting, Red Teaming, and Compliance.",
+        "cta": "Request Audit"
+    },
+    "services": {
+        "title": "Operational Capabilities",
+        "subtitle": "Technical services aligned with international standards and current regulations.",
+        "items": {
+            "consulting": {
+                "title": "Consulting & Audit (620200)",
+                "description": "Ethical Hacking services, vulnerability analysis, and security management. We simulate real attacks to identify gaps before criminals do."
+            },
+            "development": {
+                "title": "IT Development & Solutions (620900)",
+                "description": "Secure web design, custom software development, and system integration. Clean code and DevSecOps principles from the start."
+            },
+            "info": {
+                "title": "Information Services (639900)",
+                "description": "Specialized training, cybersecurity awareness for employees, and critical information asset management."
+            }
+        }
+    }
+}
