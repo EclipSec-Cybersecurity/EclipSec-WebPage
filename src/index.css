@@ -24,6 +24,8 @@
     --color-text-muted-value: #A0A0A0;
     --color-heading-value: #FFFFFF;
     --color-border-value: #333333;
+    --color-grid: #FFFFFF;
+    /* White grid for dark mode */
   }
 
   :root[data-theme="light"] {
@@ -40,6 +42,8 @@
     /* Gray-900 for headings */
     --color-border: #D1D5DB;
     /* Gray-300 */
+    --color-grid: #000000;
+    /* Black grid for light mode */
   }
 
   body {
