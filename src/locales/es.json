@@ -1,0 +1,78 @@
+{
+    "common": {
+        "loading": "Cargando...",
+        "contact_secure": "Contacto Cifrado",
+        "get_started": "Comenzar",
+        "services": "Servicios",
+        "about": "Nosotros",
+        "contact": "Contacto",
+        "language": "Idioma",
+        "form": {
+            "title": "Hablemos de Seguridad",
+            "subtitle": "Completa el formulario y nuestro equipo de expertos te contactará a la brevedad.",
+            "info_title": "Información de Contacto",
+            "email_title": "Correo Electrónico",
+            "location_title": "Ubicación",
+            "location_value": "Coquimbo, Chile",
+            "area_title": "Área de Servicio",
+            "area_value": "Consultoría Remota & Presencial",
+            "legal_nda": "Sus datos serán tratados con estricta confidencialidad bajo NDA (Acuerdo de No Divulgación).",
+            "name_label": "Nombre Completo",
+            "company_label": "Empresa / Organización",
+            "email_label": "Email Corporativo",
+            "message_label": "Detalles del Requerimiento",
+            "send_btn": "Iniciar Comunicación Segura",
+            "send_another": "Enviar otro mensaje",
+            "optional": "Opcional",
+            "message_placeholder": "Descripción del proyecto o auditoría requerida...",
+            "success_title": "Solicitud Recibida",
+            "success_desc": "Analizaremos tu requerimiento y responderemos vía canal cifrado.",
+            "validation": {
+                "name_required": "El nombre es requerido",
+                "email_invalid": "Email inválido",
+                "message_min": "Detalla un poco más tu solicitud (mín. 10 caracteres)"
+            }
+        }
+    },
+    "about": {
+        "title": "Quiénes Somos",
+        "subtitle": "Conoce el perfil de las personas detrás de esta iniciativa.",
+        "team": {
+            "students": {
+                "title": "Estudiantes UCN",
+                "description": "Somos estudiantes de Ingeniería en Tecnologías de Información en la Universidad Católica del Norte Coquimbo (UCN), especializándonos en el minor de Ciberseguridad y cursando nuestro último año académico."
+            },
+            "experience": {
+                "title": "Experiencia y Eficiencia",
+                "description": "Gracias a las experiencias adquiridas en nuestro camino educativo, poseemos mejor manejo de proyectos y trabajos priorizando al cliente, aplicando metodologías ágiles."
+            },
+            "support": {
+                "title": "Asistencia Constante",
+                "description": "Nuestra visión no termina con la entrega de un proyecto. Continuamos con seguimiento y asistencia constante para asegurar un sello de calidad."
+            }
+        }
+    },
+    "hero": {
+        "title": "Auditamos lo Invisible. Protegemos lo Esencial.",
+        "subtitle": "Consultoría especializada en Pentesting, Red Teaming y Cumplimiento Normativo.",
+        "cta": "Solicitar Auditoría"
+    },
+    "services": {
+        "title": "Capacidades Operativas",
+        "subtitle": "Servicios técnicos alineados con estándares internacionales y normativa vigente.",
+        "items": {
+            "consulting": {
+                "title": "Consultoría y Auditoría (620200)",
+                "description": "Servicios de Ethical Hacking, análisis de vulnerabilidades y gestión de seguridad. Simulamos ataques reales para identificar brechas antes que los criminales."
+            },
+            "development": {
+                "title": "Desarrollo y Soluciones TI (620900)",
+                "description": "Diseño de páginas web seguras, desarrollo de software a medida e integración de sistemas. Código limpio y principios DevSecOps desde el inicio."
+            },
+            "info": {
+                "title": "Servicios de Información (639900)",
+                "description": "Capacitaciones especializadas, concienciación en ciberseguridad para empleados y gestión de activos de información crítica."
+            }
+        }
+    }
+}
