@@ -72,7 +72,7 @@ const Contact = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-heading mb-1">{t('common.form.email_title')}</h3>
-                                    <p className="text-textMuted font-mono">contacto@eclipsec.cl</p>
+                                    <p className="text-textMuted font-mono">contact.eclipsec@gmail.com</p>
                                 </div>
                             </div>
 
