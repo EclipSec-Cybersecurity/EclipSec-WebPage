@@ -30,7 +30,7 @@ const Services = () => {
         <div className="container mx-auto px-4 py-16 md:py-24">
             <div className="text-center max-w-3xl mx-auto mb-16">
                 <h1 className="text-4xl font-bold text-heading mb-4">{t('services.title')}</h1>
-                <p className="text-xl text-textMuted">{t('services.subtitle')}</p>
+                <p className="text-xl text-text-muted">{t('services.subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

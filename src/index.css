@@ -17,15 +17,9 @@
 
 @layer base {
   :root {
-    /* Default Dark Theme (matches @theme) */
-    --color-background-value: #0A0A0A;
-    --color-surface-value: #1A1A1A;
-    --color-text-value: #E0E0E0;
-    --color-text-muted-value: #A0A0A0;
-    --color-heading-value: #FFFFFF;
-    --color-border-value: #333333;
+    /* Default Dark Theme */
     --color-grid: #FFFFFF;
-    /* White grid for dark mode */
+    --grid-opacity: 0.03;
   }
 
   :root[data-theme="light"] {
@@ -44,6 +38,7 @@
     /* Gray-300 */
     --color-grid: #000000;
     /* Black grid for light mode */
+    --grid-opacity: 0.07;
   }
 
   body {

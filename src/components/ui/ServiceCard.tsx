@@ -25,7 +25,7 @@ const ServiceCard = ({ title, description, code, icon: Icon, delay = 0 }: Servic
                     <div className="p-3 bg-background/50 rounded-lg group-hover:bg-primary/20 transition-colors duration-300">
                         <Icon className="w-8 h-8 text-primary group-hover:text-accent transition-colors duration-300" />
                     </div>
-                    <span className="text-xs font-code text-textMuted/50 group-hover:text-primary/50 transition-colors">
+                    <span className="text-xs font-code text-text-muted/50 group-hover:text-primary/50 transition-colors">
                         #{code}
                     </span>
                 </div>
@@ -34,7 +34,7 @@ const ServiceCard = ({ title, description, code, icon: Icon, delay = 0 }: Servic
                     {title}
                 </h3>
 
-                <p className="text-textMuted text-sm leading-relaxed">
+                <p className="text-text-muted text-sm leading-relaxed">
                     {description}
                 </p>
 
