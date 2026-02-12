@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Shield } from 'lucide-react';
+import { NAV_ROUTES } from '../config/site';
 
 const Home = () => {
     const { t } = useTranslation();
@@ -41,7 +42,7 @@ const Home = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.4 }}
-                    className="text-lg md:text-xl text-textMuted max-w-2xl mb-10"
+                    className="text-lg md:text-xl text-text-muted max-w-2xl mb-10"
                 >
                     {t('hero.subtitle')}
                 </motion.p>
@@ -52,8 +53,8 @@ const Home = () => {
                     transition={{ duration: 0.6, delay: 0.6 }}
                 >
                     <Link
-                        to="/contacto"
-                        className="group relative inline-flex items-center justify-center px-8 py-3 text-base font-bold text-background bg-primary rounded shadow-[0_0_15px_rgba(211,47,47,0.4)] transition-all hover:bg-primaryHover hover:shadow-[0_0_25px_rgba(211,47,47,0.6)] hover:-translate-y-1 overflow-hidden"
+                        to={NAV_ROUTES.contact}
+                        className="group relative inline-flex items-center justify-center px-8 py-3 text-base font-bold text-background bg-primary rounded shadow-[0_0_15px_rgba(211,47,47,0.4)] transition-all hover:bg-primary-hover hover:shadow-[0_0_25px_rgba(211,47,47,0.6)] hover:-translate-y-1 overflow-hidden"
                     >
                         <span className="relative z-10">{t('hero.cta')}</span>
                         <span className="absolute inset-0 bg-white/20 translate-y-full skew-y-12 group-hover:translate-y-0 transition-transform duration-500 ease-out"></span>
@@ -63,7 +64,7 @@ const Home = () => {
             </section>
 
             {/* Grid Pattern Overlay */}
-            <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(var(--color-grid) 1px, transparent 1px), linear-gradient(90deg, var(--color-grid) 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+            <div className="absolute inset-0 pointer-events-none" style={{ opacity: 'var(--grid-opacity)', backgroundImage: 'linear-gradient(var(--color-grid) 1px, transparent 1px), linear-gradient(90deg, var(--color-grid) 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
         </div>
     );
 };
