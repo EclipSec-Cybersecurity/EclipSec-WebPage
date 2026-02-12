@@ -1,5 +1,6 @@
 import { Github, Linkedin, Instagram } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { SITE_CONFIG, SOCIAL_LINKS } from '../../config/site';
 
 const Footer = () => {
     const { t } = useTranslation();
@@ -12,28 +13,28 @@ const Footer = () => {
 
                     {/* Brand & Tagline */}
                     <div className="text-center md:text-left">
-                        <h3 className="text-xl font-bold text-heading">EclipSec</h3>
-                        <p className="text-sm text-textMuted mt-1">
-                            "{t('hero.title')}"
+                        <h3 className="text-xl font-bold text-heading">{SITE_CONFIG.name}</h3>
+                        <p className="text-sm text-text-muted mt-1">
+                            {t('hero.title')}
                         </p>
                     </div>
 
                     {/* Social Links */}
                     <div className="flex gap-4">
-                        <a href="https://github.com/ElRetrillo" target="_blank" rel="noopener noreferrer" className="text-text hover:text-primary transition-colors">
+                        <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" className="text-text hover:text-primary transition-colors">
                             <Github className="w-5 h-5" />
                         </a>
-                        <a href="https://www.linkedin.com/in/eclipsec/" target="_blank" rel="noopener noreferrer" className="text-text hover:text-primary transition-colors">
+                        <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" className="text-text hover:text-primary transition-colors">
                             <Linkedin className="w-5 h-5" />
                         </a>
-                        <a href="https://instagram.com/eclipsec_cl" target="_blank" rel="noopener noreferrer" className="text-text hover:text-primary transition-colors">
+                        <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" className="text-text hover:text-primary transition-colors">
                             <Instagram className="w-5 h-5" />
                         </a>
                     </div>
 
                     {/* Copyright */}
-                    <div className="text-sm text-textMuted">
-                        &copy; {currentYear} EclipSec E.I.R.L.
+                    <div className="text-sm text-text-muted">
+                        &copy; {currentYear} {SITE_CONFIG.legalName}
                     </div>
                 </div>
             </div>
