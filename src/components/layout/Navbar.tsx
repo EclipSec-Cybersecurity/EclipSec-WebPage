@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Menu, X, Shield, Globe } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
+import { SITE_CONFIG, NAV_ROUTES } from '../../config/site';
 
 const Navbar = () => {
     const { t, i18n } = useTranslation();
@@ -25,9 +26,9 @@ const Navbar = () => {
     }, []);
 
     const navLinks = [
-        { name: t('common.services'), path: '/servicios' },
-        { name: t('common.about'), path: '/nosotros' },
-        { name: t('common.contact'), path: '/contacto' },
+        { name: t('common.services'), path: NAV_ROUTES.services },
+        { name: t('common.about'), path: NAV_ROUTES.about },
+        { name: t('common.contact'), path: NAV_ROUTES.contact },
     ];
 
     return (
@@ -36,9 +37,9 @@ const Navbar = () => {
                 <div className="flex justify-between items-center h-16">
 
                     {/* Logo */}
-                    <NavLink to="/" className="flex items-center gap-2 group">
+                    <NavLink to={NAV_ROUTES.home} className="flex items-center gap-2 group">
                         <Shield className="w-8 h-8 text-primary group-hover:text-accent transition-colors" />
-                        <span className="text-xl font-bold text-heading tracking-wide">EclipSec</span>
+                        <span className="text-xl font-bold text-heading tracking-wide">{SITE_CONFIG.name}</span>
                     </NavLink>
 
                     {/* Desktop Menu */}
@@ -72,8 +73,8 @@ const Navbar = () => {
 
                         {/* CTA Button */}
                         <NavLink
-                            to="/contacto"
-                            className="px-4 py-2 text-sm font-bold text-background bg-primary hover:bg-primaryHover rounded transition-colors shadow-[0_0_10px_rgba(211,47,47,0.5)] hover:shadow-[0_0_15px_rgba(211,47,47,0.8)]"
+                            to={NAV_ROUTES.contact}
+                            className="px-4 py-2 text-sm font-bold text-background bg-primary hover:bg-primary-hover rounded transition-colors shadow-[0_0_10px_rgba(211,47,47,0.5)] hover:shadow-[0_0_15px_rgba(211,47,47,0.8)]"
                         >
                             {t('common.contact_secure')}
                         </NavLink>
@@ -82,7 +83,7 @@ const Navbar = () => {
                     {/* Mobile Menu Button */}
                     <div className="md:hidden flex items-center gap-4">
                         <ThemeToggle />
-                        <button onClick={toggleLanguage} className="text-text">
+                        <button onClick={toggleLanguage} className="text-text" aria-label="Toggle Language">
                             <span className="uppercase font-bold text-xs">{i18n.language}</span>
                         </button>
                         <button
@@ -110,9 +111,9 @@ const Navbar = () => {
                             </NavLink>
                         ))}
                         <NavLink
-                            to="/contacto"
+                            to={NAV_ROUTES.contact}
                             onClick={() => setIsOpen(false)}
-                            className="px-4 py-2 text-center text-sm font-bold text-background bg-primary hover:bg-primaryHover rounded transition-colors"
+                            className="px-4 py-2 text-center text-sm font-bold text-background bg-primary hover:bg-primary-hover rounded transition-colors"
                         >
                             {t('common.contact_secure')}
                         </NavLink>

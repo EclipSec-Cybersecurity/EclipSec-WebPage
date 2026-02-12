@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Send, Mail, MapPin, Globe, ShieldCheck, Lock } from 'lucide-react';
+import { SITE_CONFIG } from '../config/site';
 
 const Contact = () => {
     const { t } = useTranslation();
@@ -23,7 +24,7 @@ const Contact = () => {
 
     const onSubmit = async (data: ContactFormValues) => {
         try {
-            const response = await fetch('https://formspree.io/f/xjgknknk', {
+            const response = await fetch(SITE_CONFIG.formspreeEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -54,14 +55,14 @@ const Contact = () => {
                             <div className="p-2 bg-primary/10 rounded-lg">
                                 <ShieldCheck className="w-6 h-6 text-primary" />
                             </div>
-                            <span className="text-primary font-bold tracking-wider text-sm uppercase">EclipSec Contact</span>
+                            <span className="text-primary font-bold tracking-wider text-sm uppercase">{SITE_CONFIG.name} Contact</span>
                         </div>
 
                         <h1 className="text-4xl md:text-5xl font-bold text-heading mb-6 leading-tight">
                             {t('common.form.title')}
                         </h1>
 
-                        <p className="text-xl text-textMuted mb-12 leading-relaxed">
+                        <p className="text-xl text-text-muted mb-12 leading-relaxed">
                             {t('common.form.subtitle')}
                         </p>
 
@@ -72,7 +73,7 @@ const Contact = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-heading mb-1">{t('common.form.email_title')}</h3>
-                                    <p className="text-textMuted font-mono">contacto@eclipsec.cl</p>
+                                    <p className="text-text-muted font-mono">{SITE_CONFIG.email}</p>
                                 </div>
                             </div>
 
@@ -82,7 +83,7 @@ const Contact = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-heading mb-1">{t('common.form.location_title')}</h3>
-                                    <p className="text-textMuted">{t('common.form.location_value')}</p>
+                                    <p className="text-text-muted">{t('common.form.location_value')}</p>
                                 </div>
                             </div>
 
@@ -92,7 +93,7 @@ const Contact = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-heading mb-1">{t('common.form.area_title')}</h3>
-                                    <p className="text-textMuted">{t('common.form.area_value')}</p>
+                                    <p className="text-text-muted">{t('common.form.area_value')}</p>
                                 </div>
                             </div>
                         </div>
@@ -115,10 +116,10 @@ const Contact = () => {
                                     <ShieldCheck className="w-8 h-8" />
                                 </div>
                                 <h3 className="text-2xl font-bold text-heading mb-2">{t('common.form.success_title')}</h3>
-                                <p className="text-textMuted max-w-xs mx-auto">{t('common.form.success_desc')}</p>
+                                <p className="text-text-muted max-w-xs mx-auto">{t('common.form.success_desc')}</p>
                                 <button
                                     onClick={() => reset()}
-                                    className="mt-8 text-sm text-primary hover:text-primaryHover underline"
+                                    className="mt-8 text-sm text-primary hover:text-primary-hover underline"
                                 >
                                     {t('common.form.send_another')}
                                 </button>
@@ -133,7 +134,7 @@ const Contact = () => {
                                         <input
                                             {...register('name')}
                                             type="text"
-                                            className="w-full px-4 py-3 bg-background/50 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-textMuted/30"
+                                            className="w-full px-4 py-3 bg-background/50 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-text-muted/30"
                                             placeholder="John Doe"
                                         />
                                         {errors.name && (
@@ -142,12 +143,12 @@ const Contact = () => {
                                     </div>
                                     <div>
                                         <label htmlFor="company" className="block text-sm font-semibold text-text mb-2">
-                                            {t('common.form.company_label')} <span className="text-textMuted font-normal text-xs">({t('common.form.optional')})</span>
+                                            {t('common.form.company_label')} <span className="text-text-muted font-normal text-xs">({t('common.form.optional')})</span>
                                         </label>
                                         <input
                                             {...register('company')}
                                             type="text"
-                                            className="w-full px-4 py-3 bg-background/50 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-textMuted/30"
+                                            className="w-full px-4 py-3 bg-background/50 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-text-muted/30"
                                             placeholder="Empresa SPA"
                                         />
                                     </div>
@@ -160,7 +161,7 @@ const Contact = () => {
                                     <input
                                         {...register('email')}
                                         type="email"
-                                        className="w-full px-4 py-3 bg-background/50 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-textMuted/30"
+                                        className="w-full px-4 py-3 bg-background/50 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-text-muted/30"
                                         placeholder="john@empresa.com"
                                     />
                                     {errors.email && (
@@ -175,7 +176,7 @@ const Contact = () => {
                                     <textarea
                                         {...register('message')}
                                         rows={4}
-                                        className="w-full px-4 py-3 bg-background/50 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none placeholder:text-textMuted/30"
+                                        className="w-full px-4 py-3 bg-background/50 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none placeholder:text-text-muted/30"
                                         placeholder={t('common.form.message_placeholder')}
                                     />
                                     {errors.message && (
@@ -187,7 +188,7 @@ const Contact = () => {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="w-full flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-background bg-primary rounded-lg hover:bg-primaryHover transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                                        className="w-full flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-background bg-primary rounded-lg hover:bg-primary-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                                     >
                                         {isSubmitting ? (
                                             t('common.loading')
@@ -198,7 +199,7 @@ const Contact = () => {
                                             </>
                                         )}
                                     </button>
-                                    <p className="text-xs text-center text-textMuted mt-4 opacity-70">
+                                    <p className="text-xs text-center text-text-muted mt-4 opacity-70">
                                         <Lock className="w-3 h-3 inline mr-1" />
                                         {t('common.form.legal_nda')}
                                     </p>
