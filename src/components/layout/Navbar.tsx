@@ -29,6 +29,7 @@ const Navbar = () => {
         { name: t('common.services'), path: NAV_ROUTES.services },
         { name: t('common.about'), path: NAV_ROUTES.about },
         { name: t('common.contact'), path: NAV_ROUTES.contact },
+        { name: t('common.ctf'), path: NAV_ROUTES.ctf },
     ];
 
     return (

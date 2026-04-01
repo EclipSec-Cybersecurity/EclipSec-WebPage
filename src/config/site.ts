@@ -25,4 +25,7 @@ export const NAV_ROUTES = {
     services: '/servicios',
     about: '/nosotros',
     contact: '/contacto',
+    ctf: '/ctf',
+    ctfChallenges: '/ctf/challenges',
+    challengeLab: '/ctf/challenge', // + /:challengeId
 } as const;
