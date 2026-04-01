@@ -52,6 +52,8 @@ export interface Challenge {
     connection: ChallengeConnection;
     hints?: string[];
     flagFormat?: string;
+    /** Flag para validación (opcional en frontend, idealmente en backend) */
+    flag?: string;
     /** true = contenedor corriendo; false = offline */
     active: boolean;
 }
@@ -95,6 +97,7 @@ export const challenges: Challenge[] = [
             // sin wsPort → no muestra panel de terminal
         },
         flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{h1dd3n_1n_pl41n_s1ght}',
         hints: ['¿Has revisado el HTML?', 'Los comentarios a veces dicen mucho...'],
         active: true,
     },

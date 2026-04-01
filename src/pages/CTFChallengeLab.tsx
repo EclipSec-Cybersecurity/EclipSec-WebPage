@@ -170,9 +170,15 @@ const CTFChallengeLab = () => {
 
     const handleFlag = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!flagInput.trim()) return;
-        // TODO: POST a un backend real para validar
-        setFlagResult('wrong');
+        const input = flagInput.trim();
+        if (!challenge || !input) return;
+
+        if (challenge.flag && input === challenge.flag) {
+            setFlagResult('correct');
+        } else {
+            setFlagResult('wrong');
+        }
+
         setTimeout(() => setFlagResult(null), 3000);
     };
 
