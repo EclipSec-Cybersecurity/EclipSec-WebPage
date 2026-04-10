@@ -58,21 +58,72 @@
         "subtitle": "Specialized consulting in Pentesting, Red Teaming, and Compliance.",
         "cta": "Request Audit"
     },
+    "home": {
+        "ucn": {
+            "label": "Academic Collaboration",
+            "title": "UCN Cybersecurity Academy",
+            "subtitle": "We collaborate with the Cybersecurity Academy of Universidad Católica del Norte (UCN), lending them our domain so they can operate and grow. We support their mission to train the next generation of cybersecurity professionals in the Coquimbo region.",
+            "tag1": "Domain provided",
+            "tag2": "Cybersecurity training",
+            "tag3": "UCN Coquimbo"
+        }
+    },
     "services": {
         "title": "Operational Capabilities",
-        "subtitle": "Technical services aligned with international standards and current regulations.",
+        "subtitle": "Specialized technical services with transparent pricing and international standards.",
+        "disclaimer": "* Prices listed are minimum estimated references. Final value varies based on project complexity and scope. Contact us for a personalized quote.",
         "items": {
-            "consulting": {
-                "title": "Consulting & Audit (620200)",
-                "description": "Ethical Hacking services, vulnerability analysis, and security management. We simulate real attacks to identify gaps before criminals do."
-            },
             "development": {
-                "title": "IT Development & Solutions (620900)",
-                "description": "Secure web design, custom software development, and system integration. Clean code and DevSecOps principles from the start."
+                "title": "Software Development",
+                "badge": "Development",
+                "description": "Design and development of web applications, APIs, and custom software with security built in from the start (DevSecOps).",
+                "price": "from $200,000 CLP",
+                "features": [
+                    "Front-end and back-end web development",
+                    "REST APIs and microservices",
+                    "System and database integration",
+                    "Clean code with security review",
+                    "Post-delivery maintenance and support"
+                ]
             },
-            "info": {
-                "title": "Information Services (639900)",
-                "description": "Specialized training, cybersecurity awareness for employees, and critical information asset management."
+            "consulting": {
+                "title": "Audits & Advisory",
+                "badge": "Consulting",
+                "description": "Vulnerability analysis, security audits, and compliance advisory to protect your organization's most critical assets.",
+                "price": "from $200,000 CLP",
+                "features": [
+                    "Web application security audit",
+                    "Vulnerability analysis and management",
+                    "Compliance advisory (ISO 27001, NIST)",
+                    "Infrastructure and configuration review",
+                    "Executive report with remediation plan"
+                ]
+            },
+            "redteam": {
+                "title": "Cybersecurity — Red Teaming",
+                "badge": "Offensive",
+                "description": "We simulate real attacks against your organization to identify security gaps before malicious actors do. Ethical Hacking with certified methodologies.",
+                "price": "from $500,000 CLP",
+                "features": [
+                    "Web and network penetration testing",
+                    "Adversary simulation (Red Team)",
+                    "Social engineering and controlled phishing",
+                    "Perimeter security analysis",
+                    "Detailed technical and executive report"
+                ]
+            },
+            "tutoring": {
+                "title": "Tutoring & Training",
+                "badge": "Education",
+                "description": "Training in cybersecurity, programming, and technology. Personalized education for teams, companies, or students looking to strengthen their technical skills.",
+                "price": "from $30,000 CLP / session",
+                "features": [
+                    "Personalized programming and IT tutoring",
+                    "Cybersecurity team training",
+                    "Security awareness workshops",
+                    "CTF and ethical hacking courses",
+                    "On-site and remote modality"
+                ]
             }
         }
     }

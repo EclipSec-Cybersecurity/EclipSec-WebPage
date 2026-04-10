@@ -58,21 +58,72 @@
         "subtitle": "Consultoría especializada en Pentesting, Red Teaming y Cumplimiento Normativo.",
         "cta": "Solicitar Auditoría"
     },
+    "home": {
+        "ucn": {
+            "label": "Colaboración Académica",
+            "title": "Academia de Ciberseguridad UCN",
+            "subtitle": "Colaboramos con la Academia de Ciberseguridad de la Universidad Católica del Norte (UCN), facilitándoles nuestro dominio para que puedan operar y crecer. Apoyamos su misión de formar a la próxima generación de profesionales en seguridad informática en la región de Coquimbo.",
+            "tag1": "Dominio cedido",
+            "tag2": "Formación en ciberseguridad",
+            "tag3": "UCN Coquimbo"
+        }
+    },
     "services": {
         "title": "Capacidades Operativas",
-        "subtitle": "Servicios técnicos alineados con estándares internacionales y normativa vigente.",
+        "subtitle": "Servicios técnicos especializados con precios transparentes y estándares internacionales.",
+        "disclaimer": "* Los precios indicados son referencias mínimas estimadas. El valor final varía según la complejidad y alcance del proyecto. Contáctenos para una cotización personalizada.",
         "items": {
-            "consulting": {
-                "title": "Consultoría y Auditoría (620200)",
-                "description": "Servicios de Ethical Hacking, análisis de vulnerabilidades y gestión de seguridad. Simulamos ataques reales para identificar brechas antes que los criminales."
-            },
             "development": {
-                "title": "Desarrollo y Soluciones TI (620900)",
-                "description": "Diseño de páginas web seguras, desarrollo de software a medida e integración de sistemas. Código limpio y principios DevSecOps desde el inicio."
+                "title": "Desarrollo de Software",
+                "badge": "Desarrollo",
+                "description": "Diseño y desarrollo de aplicaciones web, APIs y software a medida con principios de seguridad integrados desde el inicio (DevSecOps).",
+                "price": "desde $200.000 CLP",
+                "features": [
+                    "Desarrollo web front-end y back-end",
+                    "APIs REST y microservicios",
+                    "Integración de sistemas y bases de datos",
+                    "Código limpio con revisión de seguridad",
+                    "Mantenimiento y soporte post-entrega"
+                ]
             },
-            "info": {
-                "title": "Servicios de Información (639900)",
-                "description": "Capacitaciones especializadas, concienciación en ciberseguridad para empleados y gestión de activos de información crítica."
+            "consulting": {
+                "title": "Auditorías & Asesorías",
+                "badge": "Consultoría",
+                "description": "Análisis de vulnerabilidades, auditorías de seguridad y asesoría en cumplimiento normativo para proteger los activos más críticos de tu organización.",
+                "price": "desde $200.000 CLP",
+                "features": [
+                    "Auditoría de seguridad de aplicaciones web",
+                    "Análisis y gestión de vulnerabilidades",
+                    "Asesoría en cumplimiento normativo (ISO 27001, NIST)",
+                    "Revisión de infraestructura y configuraciones",
+                    "Informe ejecutivo con plan de remediación"
+                ]
+            },
+            "redteam": {
+                "title": "Ciberseguridad — Red Teaming",
+                "badge": "Ofensivo",
+                "description": "Simulamos ataques reales contra tu organización para identificar brechas de seguridad antes que actores maliciosos. Ethical Hacking con metodologías certificadas.",
+                "price": "desde $500.000 CLP",
+                "features": [
+                    "Pruebas de intrusión (Pentesting) web y de red",
+                    "Simulación de adversarios (Red Team)",
+                    "Ingeniería social y phishing controlado",
+                    "Análisis de seguridad perimetral",
+                    "Reporte técnico y ejecutivo detallado"
+                ]
+            },
+            "tutoring": {
+                "title": "Tutorías & Capacitaciones",
+                "badge": "Educación",
+                "description": "Capacitaciones en ciberseguridad, programación y tecnología. Formación personalizada para equipos, empresas o estudiantes que quieran fortalecer sus habilidades técnicas.",
+                "price": "desde $30.000 CLP / sesión",
+                "features": [
+                    "Tutoría personalizada en programación y TI",
+                    "Capacitación en ciberseguridad para equipos",
+                    "Talleres de concienciación en seguridad",
+                    "Cursos de CTF y hacking ético",
+                    "Modalidad presencial y remota"
+                ]
             }
         }
     }
