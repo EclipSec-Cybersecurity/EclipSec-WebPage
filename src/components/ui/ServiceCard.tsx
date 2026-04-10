@@ -1,6 +1,8 @@
 import type { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { NAV_ROUTES } from '../../config/site';
 
 interface ServiceCardProps {
     title: string;
@@ -11,9 +13,26 @@ interface ServiceCardProps {
     price?: string;
     features?: string[];
     badge?: string;
+    quoteMessage?: string;
+    quoteLabel?: string;
 }
 
-const ServiceCard = ({ title, description, code, icon: Icon, delay = 0, price, features, badge }: ServiceCardProps) => {
+const ServiceCard = ({
+    title,
+    description,
+    code,
+    icon: Icon,
+    delay = 0,
+    price,
+    features,
+    badge,
+    quoteMessage,
+    quoteLabel = 'Cotiza ahora',
+}: ServiceCardProps) => {
+    const contactUrl = quoteMessage
+        ? `${NAV_ROUTES.contact}?message=${encodeURIComponent(quoteMessage)}`
+        : NAV_ROUTES.contact;
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -60,12 +79,25 @@ const ServiceCard = ({ title, description, code, icon: Icon, delay = 0, price, f
                     </ul>
                 )}
 
-                {price && (
-                    <div className="mt-auto pt-4 border-t border-border/50">
-                        <p className="text-xs text-text-muted/60 mb-0.5">Precio estimado desde</p>
-                        <p className="text-lg font-bold text-primary">{price}</p>
-                    </div>
-                )}
+                {/* Footer: price + quote button */}
+                <div className="mt-auto pt-4 border-t border-border/50 flex items-end justify-between gap-4">
+                    {price ? (
+                        <div>
+                            <p className="text-xs text-text-muted/60 mb-0.5">Precio estimado desde</p>
+                            <p className="text-lg font-bold text-primary">{price}</p>
+                        </div>
+                    ) : (
+                        <div />
+                    )}
+
+                    <Link
+                        to={contactUrl}
+                        className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-background bg-primary rounded-lg shadow-[0_0_10px_rgba(211,47,47,0.3)] hover:bg-primary-hover hover:shadow-[0_0_18px_rgba(211,47,47,0.5)] hover:-translate-y-0.5 transition-all duration-200 group/btn"
+                    >
+                        {quoteLabel}
+                        <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                    </Link>
+                </div>
 
                 <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-b-xl"></div>
             </div>

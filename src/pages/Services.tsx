@@ -15,6 +15,7 @@ const Services = () => {
             badge: t('services.items.development.badge'),
             price: t('services.items.development.price'),
             features: t('services.items.development.features', { returnObjects: true }) as string[],
+            quoteMessage: t('services.items.development.quoteTemplate'),
         },
         {
             title: t('services.items.consulting.title'),
@@ -24,6 +25,7 @@ const Services = () => {
             badge: t('services.items.consulting.badge'),
             price: t('services.items.consulting.price'),
             features: t('services.items.consulting.features', { returnObjects: true }) as string[],
+            quoteMessage: t('services.items.consulting.quoteTemplate'),
         },
         {
             title: t('services.items.redteam.title'),
@@ -33,6 +35,7 @@ const Services = () => {
             badge: t('services.items.redteam.badge'),
             price: t('services.items.redteam.price'),
             features: t('services.items.redteam.features', { returnObjects: true }) as string[],
+            quoteMessage: t('services.items.redteam.quoteTemplate'),
         },
         {
             title: t('services.items.tutoring.title'),
@@ -42,6 +45,7 @@ const Services = () => {
             badge: t('services.items.tutoring.badge'),
             price: t('services.items.tutoring.price'),
             features: t('services.items.tutoring.features', { returnObjects: true }) as string[],
+            quoteMessage: t('services.items.tutoring.quoteTemplate'),
         },
     ];
 
@@ -62,6 +66,7 @@ const Services = () => {
                     <ServiceCard
                         key={service.code}
                         {...service}
+                        quoteLabel={t('services.quoteBtn')}
                         delay={index * 0.1}
                     />
                 ))}
