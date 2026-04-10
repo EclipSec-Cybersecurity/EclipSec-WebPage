@@ -71,6 +71,7 @@
     "services": {
         "title": "Capacidades Operativas",
         "subtitle": "Servicios técnicos especializados con precios transparentes y estándares internacionales.",
+        "quoteBtn": "Cotiza ahora",
         "disclaimer": "* Los precios indicados son referencias mínimas estimadas. El valor final varía según la complejidad y alcance del proyecto. Contáctenos para una cotización personalizada.",
         "items": {
             "development": {
@@ -78,6 +79,7 @@
                 "badge": "Desarrollo",
                 "description": "Diseño y desarrollo de aplicaciones web, APIs y software a medida con principios de seguridad integrados desde el inicio (DevSecOps).",
                 "price": "desde $200.000 CLP",
+                "quoteTemplate": "Hola, estoy interesado/a en el servicio de Desarrollo de Software.\n\nÁrea de interés: Desarrollo de Software (620900)\n\nDetalles adicionales:\n- Tipo de proyecto: (ej. web, API, app, etc.)\n- Descripción breve: \n- Plazo estimado: \n\nQuedo atento/a a su respuesta.",
                 "features": [
                     "Desarrollo web front-end y back-end",
                     "APIs REST y microservicios",
@@ -91,6 +93,7 @@
                 "badge": "Consultoría",
                 "description": "Análisis de vulnerabilidades, auditorías de seguridad y asesoría en cumplimiento normativo para proteger los activos más críticos de tu organización.",
                 "price": "desde $200.000 CLP",
+                "quoteTemplate": "Hola, estoy interesado/a en el servicio de Auditorías y Asesorías.\n\nÁrea de interés: Auditorías & Asesorías (620200)\n\nDetalles adicionales:\n- Tipo de auditoría requerida: (ej. web, infraestructura, cumplimiento)\n- Organización o contexto: \n- Plazo estimado: \n\nQuedo atento/a a su respuesta.",
                 "features": [
                     "Auditoría de seguridad de aplicaciones web",
                     "Análisis y gestión de vulnerabilidades",
@@ -104,6 +107,7 @@
                 "badge": "Ofensivo",
                 "description": "Simulamos ataques reales contra tu organización para identificar brechas de seguridad antes que actores maliciosos. Ethical Hacking con metodologías certificadas.",
                 "price": "desde $500.000 CLP",
+                "quoteTemplate": "Hola, estoy interesado/a en el servicio de Ciberseguridad — Red Teaming.\n\nÁrea de interés: Red Teaming / Pentesting (620201)\n\nDetalles adicionales:\n- Alcance del ejercicio: (ej. web, red interna, ingeniería social)\n- Organización / infraestructura objetivo: \n- Plazo estimado: \n\nQuedo atento/a a su respuesta.",
                 "features": [
                     "Pruebas de intrusión (Pentesting) web y de red",
                     "Simulación de adversarios (Red Team)",
@@ -117,6 +121,7 @@
                 "badge": "Educación",
                 "description": "Capacitaciones en ciberseguridad, programación y tecnología. Formación personalizada para equipos, empresas o estudiantes que quieran fortalecer sus habilidades técnicas.",
                 "price": "desde $30.000 CLP / sesión",
+                "quoteTemplate": "Hola, estoy interesado/a en el servicio de Tutorías y Capacitaciones.\n\nÁrea de interés: Tutorías & Capacitaciones (639900)\n\nDetalles adicionales:\n- Tema / área a reforzar: (ej. programación, ciberseguridad, CTF)\n- N° de personas / modalidad: \n- Disponibilidad horaria: \n\nQuedo atento/a a su respuesta.",
                 "features": [
                     "Tutoría personalizada en programación y TI",
                     "Capacitación en ciberseguridad para equipos",

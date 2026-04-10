@@ -3,11 +3,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import { Send, Mail, MapPin, Globe, ShieldCheck, Lock } from 'lucide-react';
 import { SITE_CONFIG } from '../config/site';
 
 const Contact = () => {
     const { t } = useTranslation();
+    const [searchParams] = useSearchParams();
+    const prefilledMessage = searchParams.get('message') ?? '';
 
     const contactSchema = z.object({
         name: z.string().min(1, { message: t('common.form.validation.name_required') }),
@@ -20,6 +23,9 @@ const Contact = () => {
 
     const { register, handleSubmit, formState: { errors, isSubmitting, isSubmitSuccessful }, reset } = useForm<ContactFormValues>({
         resolver: zodResolver(contactSchema),
+        defaultValues: {
+            message: prefilledMessage,
+        },
     });
 
     const onSubmit = async (data: ContactFormValues) => {

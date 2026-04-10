@@ -71,6 +71,7 @@
     "services": {
         "title": "Operational Capabilities",
         "subtitle": "Specialized technical services with transparent pricing and international standards.",
+        "quoteBtn": "Get a quote",
         "disclaimer": "* Prices listed are minimum estimated references. Final value varies based on project complexity and scope. Contact us for a personalized quote.",
         "items": {
             "development": {
@@ -78,6 +79,7 @@
                 "badge": "Development",
                 "description": "Design and development of web applications, APIs, and custom software with security built in from the start (DevSecOps).",
                 "price": "from $200,000 CLP",
+                "quoteTemplate": "Hello, I'm interested in the Software Development service.\n\nService area: Software Development (620900)\n\nAdditional details:\n- Project type: (e.g. web, API, app, etc.)\n- Brief description: \n- Estimated timeline: \n\nLooking forward to hearing from you.",
                 "features": [
                     "Front-end and back-end web development",
                     "REST APIs and microservices",
@@ -91,6 +93,7 @@
                 "badge": "Consulting",
                 "description": "Vulnerability analysis, security audits, and compliance advisory to protect your organization's most critical assets.",
                 "price": "from $200,000 CLP",
+                "quoteTemplate": "Hello, I'm interested in the Audits & Advisory service.\n\nService area: Audits & Advisory (620200)\n\nAdditional details:\n- Type of audit required: (e.g. web, infrastructure, compliance)\n- Organization / context: \n- Estimated timeline: \n\nLooking forward to hearing from you.",
                 "features": [
                     "Web application security audit",
                     "Vulnerability analysis and management",
@@ -104,6 +107,7 @@
                 "badge": "Offensive",
                 "description": "We simulate real attacks against your organization to identify security gaps before malicious actors do. Ethical Hacking with certified methodologies.",
                 "price": "from $500,000 CLP",
+                "quoteTemplate": "Hello, I'm interested in the Cybersecurity — Red Teaming service.\n\nService area: Red Teaming / Pentesting (620201)\n\nAdditional details:\n- Scope of the exercise: (e.g. web, internal network, social engineering)\n- Organization / target infrastructure: \n- Estimated timeline: \n\nLooking forward to hearing from you.",
                 "features": [
                     "Web and network penetration testing",
                     "Adversary simulation (Red Team)",
@@ -117,6 +121,7 @@
                 "badge": "Education",
                 "description": "Training in cybersecurity, programming, and technology. Personalized education for teams, companies, or students looking to strengthen their technical skills.",
                 "price": "from $30,000 CLP / session",
+                "quoteTemplate": "Hello, I'm interested in the Tutoring & Training service.\n\nService area: Tutoring & Training (639900)\n\nAdditional details:\n- Topic / area to strengthen: (e.g. programming, cybersecurity, CTF)\n- Number of people / modality: \n- Availability: \n\nLooking forward to hearing from you.",
                 "features": [
                     "Personalized programming and IT tutoring",
                     "Cybersecurity team training",
