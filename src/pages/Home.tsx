@@ -82,9 +82,9 @@ const Home = () => {
                         {/* Left: UCN Image */}
                         <div className="relative min-h-[280px] md:min-h-[360px] overflow-hidden bg-surface/80 flex items-center justify-center">
                             <img
-                                src="/images/ucn-colaboracion.png"
+                                src="/images/ucn-colaboracion.jpg"
                                 alt="Colaboración EclipSec — Academia de Ciberseguridad UCN"
-                                className="w-[75%] h-[75%] object-contain drop-shadow-[0_0_20px_rgba(211,47,47,0.15)]"
+                                className="w-[100%] h-[80%] object-contain drop-shadow-[0_0_20px_rgba(211,47,47,0.15)]"
                             />
                             {/* Subtle right-edge fade into card */}
                             <div className="hidden md:block absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-surface/60 to-transparent"></div>
