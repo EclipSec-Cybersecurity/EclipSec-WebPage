@@ -1,22 +1,15 @@
 /**
  * Challenge definitions with Docker container connection info.
  *
- * Architecture:
+ * Architecture (Monolítico en Railway):
+ *   Un solo contenedor con Nginx como reverse proxy.
+ *   Todas las apps Flask corren en puertos internos (800X).
+ *   Nginx enruta /web-XXX/ → 127.0.0.1:800X
+ *   Nginx enruta /web-XXX/ws/ → ttyd en 127.0.0.1:768X
+ *
  *   Frontend (eclipsec.cl) ──► ctf/challenge/:id
- *       • WEB  → iframe embebida apuntando a http://<host>:<port>
- *       • NC   → muestra `nc <host> <port>` + WebTerminal vía wtyd (wsPort)
- *       • SSH  → muestra `ssh user@<host> -p <port>` + WebTerminal vía ttyd
- *       • FILE → botón de descarga
- *
- * Cómo exponer una terminal del contenedor:
- *   En el Dockerfile (o al levantar el contenedor) agrega ttyd:
- *     apt install ttyd  (o: wget la release de ttyd)
- *     ttyd -p <wsPort> -W bash &
- *
- *   Ejemplo docker-compose:
- *     ports:
- *       - "8001:80"    # web challenge
- *       - "7681:7681"  # ttyd terminal
+ *       • WEB  → iframe embebida apuntando a url del reto
+ *       • Terminal → WebSocket a wss://domain/web-XXX/ws
  */
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD' | 'INSANE';
@@ -30,11 +23,11 @@ export interface ChallengeConnection {
     host: string;
     /** Puerto del servicio del reto (web app / nc / ssh) */
     port: number;
-    /** URL completa del reto (opcional, sobrescribe host:port) */
+    /** URL completa del reto (obligatorio para Railway monolítico) */
     url?: string;
-    /** Puerto de ttyd en el contenedor (WebSocket terminal).
-     *  Si se define, aparece una terminal Linux real embebida en la página.
-     *  wsUrl = ws://<host>:<wsPort>/ws  */
+    /** URL del WebSocket de ttyd (obligatorio para Railway monolítico) */
+    wsUrl?: string;
+    /** Puerto de ttyd en el contenedor (WebSocket terminal) — solo para docker local */
     wsPort?: number;
     /** Info adicional (ej: credenciales SSH, ruta de descarga) */
     extra?: string;
@@ -59,12 +52,16 @@ export interface Challenge {
 }
 
 /* ─────────────────────────────────────────────────────────────────
- * Configuración del servidor universitario
- * Cambia host a la IP real del server cuando lo desplegues.
+ * Configuración del servidor
+ *
+ * Railway monolítico: todos los retos están bajo un mismo dominio
+ * con sub-rutas /web-001/, /web-002/, etc.
  * ───────────────────────────────────────────────────────────────── */
+const RAILWAY_DOMAIN = 'https://academiahackingucncqbo-production.up.railway.app';
+
 export const CTF_SERVER = {
     host: 'academiahackingucncqbo-production.up.railway.app',
-    webBaseUrl: 'http://academiahackingucncqbo-production.up.railway.app',
+    railwayDomain: RAILWAY_DOMAIN,
 } as const;
 
 export const DIFFICULTY_ORDER: Record<Difficulty, number> = {
@@ -72,13 +69,21 @@ export const DIFFICULTY_ORDER: Record<Difficulty, number> = {
 };
 
 /* ─────────────────────────────────────────────────────────────────
+ * Helper: genera URL del reto y WebSocket para el monolítico
+ * ───────────────────────────────────────────────────────────────── */
+const railwayChallenge = (id: string) => ({
+    url: `${RAILWAY_DOMAIN}/${id}/`,
+    wsUrl: `wss://${CTF_SERVER.host}/${id}/ws`,
+});
+
+/* ─────────────────────────────────────────────────────────────────
  * Lista de retos
  *
- * Cada reto corresponde a un servicio en docker-compose.yml
- * Puerto web:  800X  (docker: -p 800X:80)
- * Puerto ttyd: 768X  (docker: -p 768X:7681)
+ * Cada reto corresponde a una sub-ruta en el monolítico:
+ *   https://academiahackingucncqbo-production.up.railway.app/web-XXX/
  *
- * En producción Railway, cada reto tiene su propia URL.
+ * Terminal WebSocket:
+ *   wss://academiahackingucncqbo-production.up.railway.app/web-XXX/ws
  * ───────────────────────────────────────────────────────────────── */
 export const challenges: Challenge[] = [
 
@@ -98,8 +103,7 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8001,
-            wsPort: 7681,
-            url: CTF_SERVER.railwayUrl,
+            ...railwayChallenge('web-001'),
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{h1dd3n_1n_pl41n_s1ght}',
@@ -121,13 +125,12 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8002,
-            wsPort: 7682,
-            url: '', // TODO: Agregar URL de Railway
+            ...railwayChallenge('web-002'),
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{r0b0ts_4r3_y0ur_fr13nd5}',
         hints: ['¿Conoces el archivo robots.txt?', 'Visita las rutas que están "prohibidas".'],
-        active: false,
+        active: true,
     },
 
     // ── web-003: Cookie Tampering ───────────────────────────────
@@ -144,13 +147,12 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8003,
-            wsPort: 7683,
-            url: '', // TODO: Agregar URL de Railway
+            ...railwayChallenge('web-003'),
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{c00k13_m0nst3r_m4n1pul4t10n}',
         hints: ['Inspecciona las cookies del sitio con DevTools.', 'Cambia el valor de la cookie "role" a algo más poderoso.'],
-        active: false,
+        active: true,
     },
 
     // ── web-009: Source Code Leak ────────────────────────────────
@@ -167,13 +169,12 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8009,
-            wsPort: 7689,
-            url: '', // TODO: Agregar URL de Railway
+            ...railwayChallenge('web-009'),
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{b4ckup_f1l3s_4r3_l34ks}',
         hints: ['¿Qué extensiones usan los archivos de respaldo?', 'Prueba con index.py.bak'],
-        active: false,
+        active: true,
     },
 
     // ══════════════════════════════════════════════════════ MEDIUM ══
@@ -192,12 +193,11 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8004,
-            wsPort: 7684,
-            url: '', // TODO: Agregar URL de Railway
+            ...railwayChallenge('web-004'),
         },
         flagFormat: 'EclipSec{...}',
         hints: ['Intenta encadenar comandos con ; o |', 'Busca archivos interesantes con cat /flag.txt'],
-        active: false,
+        active: true,
     },
 
     // ── web-005: LFI to RCE ─────────────────────────────────────
@@ -214,13 +214,12 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8005,
-            wsPort: 7685,
-            url: '', // TODO: Agregar URL de Railway
+            ...railwayChallenge('web-005'),
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{l0c4l_f1l3_1nclus10n_m4st3r}',
-        hints: ['Observa el parámetro ?file= en la URL.', 'Intenta leer /flag.txt o /etc/passwd usando path traversal.'],
-        active: false,
+        hints: ['Observa el parámetro ?file= en la URL.', 'Intenta leer /flag_web005.txt o /etc/passwd usando path traversal.'],
+        active: true,
     },
 
     // ── web-006: SQLi Login Bypass ──────────────────────────────
@@ -237,13 +236,12 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8006,
-            wsPort: 7686,
-            url: '', // TODO: Agregar URL de Railway
+            ...railwayChallenge('web-006'),
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{sql1_byp4ss_l0g1n}',
         hints: ['Piensa en cómo romper una consulta SQL con comillas simples.', "Clásico: ' OR '1'='1' --"],
-        active: false,
+        active: true,
     },
 
     // ── web-007: IDOR Profiles ──────────────────────────────────
@@ -260,13 +258,12 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8007,
-            wsPort: 7687,
-            url: '', // TODO: Agregar URL de Railway
+            ...railwayChallenge('web-007'),
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{1d0r_c4n_b3_d4ng3r0us}',
         hints: ['Observa el parámetro ?id= en la URL.', '¿Qué pasa si cambias el ID a 0?'],
-        active: false,
+        active: true,
     },
 
     // ── web-010: Headers Matter ─────────────────────────────────
@@ -283,8 +280,7 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8010,
-            wsPort: 7690,
-            url: '', // TODO: Agregar URL de Railway
+            ...railwayChallenge('web-010'),
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{h34d3rs_c4n_b3_sp00f3d}',
@@ -292,7 +288,7 @@ export const challenges: Challenge[] = [
             'Necesitas modificar dos cabeceras HTTP.',
             'User-Agent: SecureBrowser1.0 y X-Forwarded-For: 127.0.0.1',
         ],
-        active: false,
+        active: true,
     },
 
     // ══════════════════════════════════════════════════════ HARD ══
@@ -311,8 +307,7 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8008,
-            wsPort: 7688,
-            url: '', // TODO: Agregar URL de Railway
+            ...railwayChallenge('web-008'),
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{sst1_t3mpl4t3_1nj3ct10n}',
@@ -320,7 +315,7 @@ export const challenges: Challenge[] = [
             'Prueba con {{7*7}} en el parámetro name.',
             'Busca clases de Python para acceder a os y leer variables de entorno.',
         ],
-        active: false,
+        active: true,
     },
 
     // ── web-011: Command Execution GET ──────────────────────────
@@ -337,16 +332,15 @@ export const challenges: Challenge[] = [
             type: 'web',
             host: CTF_SERVER.host,
             port: 8011,
-            wsPort: 7691,
-            url: '', // TODO: Agregar URL de Railway
+            ...railwayChallenge('web-011'),
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{c0mm4nd_3x3cut10n_v1a_g3t}',
         hints: [
             'La página dice: Usage: ?cmd=whoami',
-            'Intenta ?cmd=cat /flag.txt',
+            'Intenta ?cmd=cat /flag_web011.txt',
         ],
-        active: false,
+        active: true,
     },
 ];
 

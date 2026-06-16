@@ -135,7 +135,7 @@ const CTFChallengeLab = () => {
         setChallenge(found);
 
         // Si no tiene terminal, forzamos vista de 'challenge' para ocupar todo el ancho
-        if (!found.connection.wsPort) {
+        if (!found.connection.wsPort && !found.connection.wsUrl) {
             setViewMode('challenge');
         }
 
@@ -164,6 +164,9 @@ const CTFChallengeLab = () => {
     };
 
     const wsUrl = (ch: Challenge) => {
+        // Prefer explicit wsUrl (monolithic Railway setup)
+        if (ch.connection.wsUrl) return ch.connection.wsUrl;
+        // Fallback: derive from url or host:wsPort
         if (!ch.connection.wsPort) return null;
         if (ch.connection.url) {
             try {
@@ -205,7 +208,7 @@ const CTFChallengeLab = () => {
     }
 
     const diff = DIFF[challenge.difficulty];
-    const hasTerminal = !!challenge.connection.wsPort;
+    const hasTerminal = !!(challenge.connection.wsUrl || challenge.connection.wsPort);
     const cmd = connectionCmd(challenge);
     const ws = wsUrl(challenge);
 
