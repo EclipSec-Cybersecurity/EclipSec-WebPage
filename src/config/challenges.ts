@@ -63,8 +63,8 @@ export interface Challenge {
  * Cambia host a la IP real del server cuando lo desplegues.
  * ───────────────────────────────────────────────────────────────── */
 export const CTF_SERVER = {
-    host: 'localhost',          // ← en prod: IP del servidor UCN, ej. '10.20.30.40'
-    webBaseUrl: 'http://localhost',
+    host: 'academiahackingucncqbo-production.up.railway.app',
+    webBaseUrl: 'http://academiahackingucncqbo-production.up.railway.app',
 } as const;
 
 export const DIFFICULTY_ORDER: Record<Difficulty, number> = {
@@ -74,253 +74,279 @@ export const DIFFICULTY_ORDER: Record<Difficulty, number> = {
 /* ─────────────────────────────────────────────────────────────────
  * Lista de retos
  *
- * wsPort = puerto donde ttyd escucha DENTRO del contenedor
- *   (debe estar expuesto en el docker-compose/run como -p wsPort:wsPort)
+ * Cada reto corresponde a un servicio en docker-compose.yml
+ * Puerto web:  800X  (docker: -p 800X:80)
+ * Puerto ttyd: 768X  (docker: -p 768X:7681)
+ *
+ * En producción Railway, cada reto tiene su propia URL.
  * ───────────────────────────────────────────────────────────────── */
 export const challenges: Challenge[] = [
 
     // ══════════════════════════════════════════════════════ EASY ══
+
+    // ── web-001: Hidden in Plain Sight ──────────────────────────
     {
         id: 'web-001',
         title: 'Reto 1: Hidden in Plain Sight',
         category: 'WEB',
         difficulty: 'EASY',
         points: 100,
-        description: 'A veces la información más importante se esconde donde todos pueden ver. Inspecciona el código fuente.',
+        description: 'A veces la información más importante se esconde donde todos pueden ver. Inspecciona el código fuente de la página web de SecureCorp y encuentra la flag oculta.',
         solves: 87,
         author: 'EclipSec',
         connection: {
             type: 'web',
             host: CTF_SERVER.host,
             port: 8001,
-            url: 'https://academiahackingucncqbo-production.up.railway.app/',
-            // sin wsPort → no muestra panel de terminal
+            wsPort: 7681,
+            url: CTF_SERVER.railwayUrl,
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{h1dd3n_1n_pl41n_s1ght}',
         hints: ['¿Has revisado el HTML?', 'Los comentarios a veces dicen mucho...'],
         active: true,
     },
+
+    // ── web-002: Robots & Crawlers ──────────────────────────────
     {
-        id: 'crypto-001',
-        title: 'Caesar Salad',
-        category: 'CRYPTO',
+        id: 'web-002',
+        title: 'Reto 2: Robots & Crawlers',
+        category: 'WEB',
         difficulty: 'EASY',
         points: 100,
-        description: 'Un mensaje cifrado con una técnica antigua. ¿Puedes descifrar el texto oculto?',
-        solves: 92,
+        description: 'Los motores de búsqueda siguen reglas. ¿Qué pasa cuando un archivo les dice a dónde NO deben ir? Revisa lo que los crawlers no deberían encontrar.',
+        solves: 74,
         author: 'EclipSec',
         connection: {
-            type: 'file',
+            type: 'web',
             host: CTF_SERVER.host,
             port: 8002,
-            extra: '/downloads/caesar_salad.txt',
+            wsPort: 7682,
+            url: '', // TODO: Agregar URL de Railway
         },
         flagFormat: 'EclipSec{...}',
-        active: true,
+        flag: 'EclipSec{r0b0ts_4r3_y0ur_fr13nd5}',
+        hints: ['¿Conoces el archivo robots.txt?', 'Visita las rutas que están "prohibidas".'],
+        active: false,
     },
+
+    // ── web-003: Cookie Tampering ───────────────────────────────
     {
-        id: 'misc-001',
-        title: 'Base64 Layers',
-        category: 'MISC',
+        id: 'web-003',
+        title: 'Reto 3: Cookie Tampering',
+        category: 'WEB',
         difficulty: 'EASY',
         points: 100,
-        description: 'Múltiples capas de codificación protegen esta flag. Desenvuelve todas las capas.',
-        solves: 78,
+        description: 'La autenticación de este sitio usa cookies para determinar tu rol. ¿Puedes manipular tu cookie para escalar privilegios de guest a admin?',
+        solves: 68,
         author: 'EclipSec',
         connection: {
-            type: 'nc',
+            type: 'web',
             host: CTF_SERVER.host,
             port: 8003,
             wsPort: 7683,
+            url: '', // TODO: Agregar URL de Railway
         },
         flagFormat: 'EclipSec{...}',
-        active: true,
-    },
-    {
-        id: 'forensics-001',
-        title: 'Metadata Leak',
-        category: 'FORENSICS',
-        difficulty: 'EASY',
-        points: 150,
-        description: 'Una imagen aparentemente normal contiene secretos en sus metadatos EXIF.',
-        solves: 65,
-        author: 'EclipSec',
-        connection: {
-            type: 'file',
-            host: CTF_SERVER.host,
-            port: 8004,
-            extra: '/downloads/metadata_leak.jpg',
-        },
-        flagFormat: 'EclipSec{...}',
-        active: true,
+        flag: 'EclipSec{c00k13_m0nst3r_m4n1pul4t10n}',
+        hints: ['Inspecciona las cookies del sitio con DevTools.', 'Cambia el valor de la cookie "role" a algo más poderoso.'],
+        active: false,
     },
 
-    // ════════════════════════════════════════════════════ MEDIUM ══
+    // ── web-009: Source Code Leak ────────────────────────────────
     {
-        id: 'web-002',
-        title: 'Cookie Monster',
+        id: 'web-009',
+        title: 'Reto 4: Source Code Leak',
         category: 'WEB',
-        difficulty: 'MEDIUM',
-        points: 250,
-        description: 'La autenticación de este sitio tiene una debilidad. Manipula las cookies para escalar privilegios.',
-        solves: 43,
-        author: 'EclipSec',
-        connection: { type: 'web', host: CTF_SERVER.host, port: 8005, wsPort: 7685 },
-        flagFormat: 'EclipSec{...}',
-        active: true,
-    },
-    {
-        id: 'web-003',
-        title: 'SQL Injection 101',
-        category: 'WEB',
-        difficulty: 'MEDIUM',
-        points: 300,
-        description: 'Un formulario de login vulnerable. Bypasea la autenticación usando inyección SQL.',
-        solves: 38,
-        author: 'EclipSec',
-        connection: { type: 'web', host: CTF_SERVER.host, port: 8006, wsPort: 7686 },
-        flagFormat: 'EclipSec{...}',
-        active: true,
-    },
-    {
-        id: 'crypto-002',
-        title: 'XOR Enigma',
-        category: 'CRYPTO',
-        difficulty: 'MEDIUM',
-        points: 250,
-        description: 'Un archivo fue cifrado con XOR usando una clave repetida. Encuentra el patrón y descifra.',
-        solves: 31,
-        author: 'EclipSec',
-        connection: { type: 'nc', host: CTF_SERVER.host, port: 8007, wsPort: 7687 },
-        flagFormat: 'EclipSec{...}',
-        active: true,
-    },
-    {
-        id: 'forensics-002',
-        title: 'Packet Hunter',
-        category: 'FORENSICS',
-        difficulty: 'MEDIUM',
-        points: 300,
-        description: 'Analiza la captura de red .pcap y encuentra las credenciales transmitidas en texto plano.',
-        solves: 29,
+        difficulty: 'EASY',
+        points: 150,
+        description: 'Los desarrolladores a veces dejan archivos de respaldo en el servidor. Busca archivos .bak u otros backups que no deberían estar expuestos.',
+        solves: 55,
         author: 'EclipSec',
         connection: {
-            type: 'file',
+            type: 'web',
             host: CTF_SERVER.host,
-            port: 8008,
-            extra: '/downloads/capture.pcap',
+            port: 8009,
+            wsPort: 7689,
+            url: '', // TODO: Agregar URL de Railway
         },
         flagFormat: 'EclipSec{...}',
-        active: true,
+        flag: 'EclipSec{b4ckup_f1l3s_4r3_l34ks}',
+        hints: ['¿Qué extensiones usan los archivos de respaldo?', 'Prueba con index.py.bak'],
+        active: false,
     },
+
+    // ══════════════════════════════════════════════════════ MEDIUM ══
+
+    // ── web-004: Ping of Death ──────────────────────────────────
     {
-        id: 'pwn-001',
-        title: 'Buffer Overflow Basics',
-        category: 'PWN',
+        id: 'web-004',
+        title: 'Reto 5: Ping of Death',
+        category: 'WEB',
         difficulty: 'MEDIUM',
-        points: 350,
-        description: 'Un binario con un buffer overflow clásico. Sobrescribe la dirección de retorno.',
-        solves: 22,
+        points: 250,
+        description: 'Una herramienta de diagnóstico de red permite hacer ping a direcciones IP. Pero, ¿qué pasa si inyectas algo más que una IP? Encuentra la forma de ejecutar comandos.',
+        solves: 43,
         author: 'EclipSec',
-        connection: { type: 'nc', host: CTF_SERVER.host, port: 8009, wsPort: 7689 },
+        connection: {
+            type: 'web',
+            host: CTF_SERVER.host,
+            port: 8004,
+            wsPort: 7684,
+            url: '', // TODO: Agregar URL de Railway
+        },
         flagFormat: 'EclipSec{...}',
-        hints: ['¿Cuántos bytes necesitas para llegar al EIP?'],
-        active: true,
+        hints: ['Intenta encadenar comandos con ; o |', 'Busca archivos interesantes con cat /flag.txt'],
+        active: false,
+    },
+
+    // ── web-005: LFI to RCE ─────────────────────────────────────
+    {
+        id: 'web-005',
+        title: 'Reto 6: LFI to RCE',
+        category: 'WEB',
+        difficulty: 'MEDIUM',
+        points: 300,
+        description: 'El servidor carga archivos locales según un parámetro GET. Explota la vulnerabilidad de Local File Inclusion para leer archivos del sistema y encontrar la flag.',
+        solves: 35,
+        author: 'EclipSec',
+        connection: {
+            type: 'web',
+            host: CTF_SERVER.host,
+            port: 8005,
+            wsPort: 7685,
+            url: '', // TODO: Agregar URL de Railway
+        },
+        flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{l0c4l_f1l3_1nclus10n_m4st3r}',
+        hints: ['Observa el parámetro ?file= en la URL.', 'Intenta leer /flag.txt o /etc/passwd usando path traversal.'],
+        active: false,
+    },
+
+    // ── web-006: SQLi Login Bypass ──────────────────────────────
+    {
+        id: 'web-006',
+        title: 'Reto 7: SQLi Login Bypass',
+        category: 'WEB',
+        difficulty: 'MEDIUM',
+        points: 300,
+        description: 'Un formulario de login con una consulta SQL vulnerable. Bypassea la autenticación usando inyección SQL clásica para acceder como administrador.',
+        solves: 38,
+        author: 'EclipSec',
+        connection: {
+            type: 'web',
+            host: CTF_SERVER.host,
+            port: 8006,
+            wsPort: 7686,
+            url: '', // TODO: Agregar URL de Railway
+        },
+        flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{sql1_byp4ss_l0g1n}',
+        hints: ['Piensa en cómo romper una consulta SQL con comillas simples.', "Clásico: ' OR '1'='1' --"],
+        active: false,
+    },
+
+    // ── web-007: IDOR Profiles ──────────────────────────────────
+    {
+        id: 'web-007',
+        title: 'Reto 8: IDOR Profiles',
+        category: 'WEB',
+        difficulty: 'MEDIUM',
+        points: 250,
+        description: 'El sistema de perfiles permite ver usuarios por ID. ¿Puedes acceder a un perfil que no deberías ver? Explota la referencia directa insegura a objetos.',
+        solves: 42,
+        author: 'EclipSec',
+        connection: {
+            type: 'web',
+            host: CTF_SERVER.host,
+            port: 8007,
+            wsPort: 7687,
+            url: '', // TODO: Agregar URL de Railway
+        },
+        flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{1d0r_c4n_b3_d4ng3r0us}',
+        hints: ['Observa el parámetro ?id= en la URL.', '¿Qué pasa si cambias el ID a 0?'],
+        active: false,
+    },
+
+    // ── web-010: Headers Matter ─────────────────────────────────
+    {
+        id: 'web-010',
+        title: 'Reto 9: Headers Matter',
+        category: 'WEB',
+        difficulty: 'MEDIUM',
+        points: 300,
+        description: 'El servidor solo permite acceso desde un navegador específico y una IP local. Manipula las cabeceras HTTP para pasar los controles de seguridad.',
+        solves: 30,
+        author: 'EclipSec',
+        connection: {
+            type: 'web',
+            host: CTF_SERVER.host,
+            port: 8010,
+            wsPort: 7690,
+            url: '', // TODO: Agregar URL de Railway
+        },
+        flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{h34d3rs_c4n_b3_sp00f3d}',
+        hints: [
+            'Necesitas modificar dos cabeceras HTTP.',
+            'User-Agent: SecureBrowser1.0 y X-Forwarded-For: 127.0.0.1',
+        ],
+        active: false,
     },
 
     // ══════════════════════════════════════════════════════ HARD ══
+
+    // ── web-008: Server-Side Template Injection ─────────────────
     {
-        id: 'web-004',
-        title: 'SSTI Escape',
+        id: 'web-008',
+        title: 'Reto 10: Server-Side Template Injection',
         category: 'WEB',
         difficulty: 'HARD',
         points: 500,
-        description: 'El motor de plantillas del servidor es vulnerable. Logra ejecución de código remoto via SSTI.',
+        description: 'El motor de plantillas del servidor es vulnerable a SSTI. Inyecta código en el parámetro de entrada para lograr ejecución de código y leer la flag desde las variables de entorno.',
         solves: 11,
         author: 'EclipSec',
-        connection: { type: 'web', host: CTF_SERVER.host, port: 8010, wsPort: 7690 },
-        flagFormat: 'EclipSec{...}',
-        active: true,
-    },
-    {
-        id: 'crypto-003',
-        title: 'RSA Weak Keys',
-        category: 'CRYPTO',
-        difficulty: 'HARD',
-        points: 500,
-        description: 'Las claves RSA generadas tienen un defecto. Factoriza el módulo y descifra el mensaje.',
-        solves: 8,
-        author: 'EclipSec',
-        connection: { type: 'nc', host: CTF_SERVER.host, port: 8011, wsPort: 7691 },
-        flagFormat: 'EclipSec{...}',
-        active: true,
-    },
-    {
-        id: 'pwn-002',
-        title: 'ROP Chain Builder',
-        category: 'PWN',
-        difficulty: 'HARD',
-        points: 600,
-        description: 'NX está habilitado. Construye una cadena ROP para ejecutar /bin/sh en el servidor.',
-        solves: 6,
-        author: 'EclipSec',
-        connection: { type: 'nc', host: CTF_SERVER.host, port: 8012, wsPort: 7692 },
-        flagFormat: 'EclipSec{...}',
-        active: true,
-    },
-    {
-        id: 'forensics-003',
-        title: 'Memory Dump Analysis',
-        category: 'FORENSICS',
-        difficulty: 'HARD',
-        points: 550,
-        description: 'Analiza un volcado de memoria RAM y extrae la flag oculta en un proceso sospechoso.',
-        solves: 9,
-        author: 'EclipSec',
         connection: {
-            type: 'ssh',
+            type: 'web',
             host: CTF_SERVER.host,
-            port: 8013,
-            wsPort: 7693,
-            extra: 'user: analyst / pass: volatility',
+            port: 8008,
+            wsPort: 7688,
+            url: '', // TODO: Agregar URL de Railway
         },
         flagFormat: 'EclipSec{...}',
-        active: true,
+        flag: 'EclipSec{sst1_t3mpl4t3_1nj3ct10n}',
+        hints: [
+            'Prueba con {{7*7}} en el parámetro name.',
+            'Busca clases de Python para acceder a os y leer variables de entorno.',
+        ],
+        active: false,
     },
 
-    // ════════════════════════════════════════════════════ INSANE ══
+    // ── web-011: Command Execution GET ──────────────────────────
     {
-        id: 'pwn-003',
-        title: 'Kernel Exploit',
-        category: 'PWN',
-        difficulty: 'INSANE',
-        points: 1000,
-        description: 'Escala privilegios explotando una vulnerabilidad en un módulo del kernel custom.',
-        solves: 2,
+        id: 'web-011',
+        title: 'Reto 11: Command Execution GET',
+        category: 'WEB',
+        difficulty: 'HARD',
+        points: 500,
+        description: 'Una consola de administración de debug expone ejecución de comandos a través de un parámetro GET. Encuentra la flag oculta en el sistema de archivos del servidor.',
+        solves: 8,
         author: 'EclipSec',
         connection: {
-            type: 'ssh',
+            type: 'web',
             host: CTF_SERVER.host,
-            port: 8014,
-            wsPort: 7694,
-            extra: 'user: pwner / pass: challenge',
+            port: 8011,
+            wsPort: 7691,
+            url: '', // TODO: Agregar URL de Railway
         },
         flagFormat: 'EclipSec{...}',
-        active: true,
-    },
-    {
-        id: 'web-005',
-        title: 'Full Chain RCE',
-        category: 'WEB',
-        difficulty: 'INSANE',
-        points: 1000,
-        description: 'Encadena múltiples vulnerabilidades: SSRF → LFI → Deserialización → RCE.',
-        solves: 1,
-        author: 'EclipSec',
-        connection: { type: 'web', host: CTF_SERVER.host, port: 8015, wsPort: 7695 },
-        flagFormat: 'EclipSec{...}',
-        active: true,
+        flag: 'EclipSec{c0mm4nd_3x3cut10n_v1a_g3t}',
+        hints: [
+            'La página dice: Usage: ?cmd=whoami',
+            'Intenta ?cmd=cat /flag.txt',
+        ],
+        active: false,
     },
 ];
 
