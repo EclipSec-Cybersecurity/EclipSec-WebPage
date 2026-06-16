@@ -163,10 +163,19 @@ const CTFChallengeLab = () => {
         }
     };
 
-    const wsUrl = (ch: Challenge) =>
-        ch.connection.wsPort
-            ? `ws://${ch.connection.host}:${ch.connection.wsPort}/ws`
-            : null;
+    const wsUrl = (ch: Challenge) => {
+        if (!ch.connection.wsPort) return null;
+        if (ch.connection.url) {
+            try {
+                const urlObj = new URL(ch.connection.url);
+                const wsProtocol = urlObj.protocol === 'https:' ? 'wss:' : 'ws:';
+                return `${wsProtocol}//${urlObj.host}/ws`;
+            } catch (e) {
+                // fallback
+            }
+        }
+        return `ws://${ch.connection.host}:${ch.connection.wsPort}/ws`;
+    };
 
     const handleFlag = (e: React.FormEvent) => {
         e.preventDefault();
