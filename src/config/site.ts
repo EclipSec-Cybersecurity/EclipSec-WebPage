@@ -15,7 +15,7 @@ export const SITE_CONFIG = {
 } as const;
 
 export const SOCIAL_LINKS = {
-    github: 'https://github.com/ElRetrillo',
+    github: 'https://github.com/EclipSec-Cybersecurity',
     linkedin: 'https://www.linkedin.com/in/eclipsec/',
     instagram: 'https://instagram.com/eclipsec_cl',
 } as const;
