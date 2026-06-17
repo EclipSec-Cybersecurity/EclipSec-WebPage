@@ -82,7 +82,7 @@ const Home = () => {
                         {/* Left: UCN Image */}
                         <div className="relative min-h-[280px] md:min-h-[360px] overflow-hidden bg-surface/80 flex items-center justify-center">
                             <img
-                                src="/images/ucn-colaboracion.jpg"
+                                src="/images/ucn-colaboracion.png"
                                 alt="Colaboración EclipSec — Academia de Ciberseguridad UCN"
                                 className="w-[100%] h-[80%] object-contain drop-shadow-[0_0_20px_rgba(211,47,47,0.15)]"
                             />
