@@ -5,13 +5,28 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Shield, Globe, Code, Key, Search,
     Server, Bug, ChevronRight, Zap, Skull, AlertTriangle,
-    Wifi, WifiOff
+    Wifi, WifiOff, LockKeyhole, User, Trophy, LogOut,
+    RotateCcw, CheckCircle2
 } from 'lucide-react';
 import { NAV_ROUTES } from '../config/site';
 import {
     sortedChallenges as importedChallenges,
     type Difficulty, type Category
 } from '../config/challenges';
+import {
+    ADMIN_CREDENTIALS,
+    canAccessChallenge,
+    clearAcademyRegistry,
+    formatDuration,
+    getAcademyState,
+    getNextChallengeIndex,
+    isChallengeCompleted,
+    loginAcademyUser,
+    logoutAcademy,
+    registerAcademyUser,
+    type AcademySession,
+    type AcademyUser,
+} from '../lib/ctfAcademy';
 
 const DIFFICULTY_CONFIG: Record<Difficulty, { color: string; border: string; icon: React.ReactNode; label: string }> = {
     EASY: { color: '#00ff41', border: 'rgba(0,255,65,0.3)', icon: <Zap className="w-3 h-3" />, label: 'EASY' },
@@ -33,6 +48,15 @@ const sortedChallenges = importedChallenges;
 const CTFChallenges = () => {
     const [filter, setFilter] = useState<Category | 'ALL'>('ALL');
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [session, setSession] = useState<AcademySession | null>(null);
+    const [currentUser, setCurrentUser] = useState<AcademyUser | null>(null);
+    const [participants, setParticipants] = useState(0);
+    const [leaderboard, setLeaderboard] = useState<Awaited<ReturnType<typeof getAcademyState>>['leaderboard']>([]);
+    const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+    const [authUsername, setAuthUsername] = useState('');
+    const [authPassword, setAuthPassword] = useState('');
+    const [authMessage, setAuthMessage] = useState('');
+    const [loadingAcademy, setLoadingAcademy] = useState(true);
     const navigateTo = useNavigate();
 
     useEffect(() => {
@@ -58,8 +82,60 @@ const CTFChallenges = () => {
         };
     }, []);
 
+    const applyAcademyState = (state: Awaited<ReturnType<typeof getAcademyState>>) => {
+        setSession(state.session);
+        setCurrentUser(state.currentUser);
+        setParticipants(state.participants);
+        setLeaderboard(state.leaderboard);
+    };
+
+    const refreshAcademy = async () => {
+        setLoadingAcademy(true);
+        try {
+            applyAcademyState(await getAcademyState());
+        } catch {
+            setAuthMessage('No se pudo conectar con la base de datos de la Academy.');
+        } finally {
+            setLoadingAcademy(false);
+        }
+    };
+
+    useEffect(() => {
+        void refreshAcademy();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handleAuth = async (event: React.FormEvent) => {
+        event.preventDefault();
+        const result = await (authMode === 'register'
+            ? registerAcademyUser(authUsername, authPassword)
+            : loginAcademyUser(authUsername, authPassword));
+
+        setAuthMessage(result.message);
+        if (result.ok) {
+            setAuthUsername('');
+            setAuthPassword('');
+            if (result.data) applyAcademyState(result.data);
+        }
+    };
+
+    const handleLogout = async () => {
+        await logoutAcademy();
+        await refreshAcademy();
+        setAuthMessage('');
+    };
+
+    const handleClearRegistry = async () => {
+        const result = await clearAcademyRegistry();
+        setAuthMessage(result.message);
+        if (result.data) applyAcademyState(result.data);
+    };
+
     const filtered = filter === 'ALL' ? sortedChallenges : sortedChallenges.filter(c => c.category === filter);
     const categories: (Category | 'ALL')[] = ['ALL', 'WEB', 'CRYPTO', 'FORENSICS', 'PWN', 'MISC'];
+    const nextChallengeIndex = getNextChallengeIndex(currentUser);
+    const completedCount = currentUser?.completedChallengeIds.length ?? 0;
+    const isPlayer = Boolean(session?.role === 'player' && currentUser);
 
     return (
         <div className="min-h-screen bg-[#050505] text-[#00ff41] font-mono selection:bg-[#00ff41] selection:text-black relative">
@@ -110,49 +186,191 @@ const CTFChallenges = () => {
                     </div>
                 </motion.div>
 
-                {/* Category Filters */}
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="flex flex-wrap gap-2 mb-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 mb-6"
                 >
-                    {categories.map(cat => (
-                        <button
-                            key={cat}
-                            onClick={() => setFilter(cat)}
-                            className={`px-3 py-1 rounded text-xs border transition-all ${filter === cat
-                                ? 'bg-[#00ff41]/20 border-[#00ff41]/60 text-[#00ff41]'
-                                : 'bg-transparent border-[#00ff41]/15 text-[#00ff41]/50 hover:border-[#00ff41]/40 hover:text-[#00ff41]/80'
-                                }`}
+                    <div className="bg-black/50 border border-[#00ff41]/20 rounded-lg p-4">
+                        {loadingAcademy ? (
+                            <div className="flex items-center justify-between gap-4">
+                                <p className="text-white text-sm font-bold flex items-center gap-2">
+                                    <Server className="w-4 h-4 text-[#00ff41]" /> SINCRONIZANDO_ACADEMY
+                                </p>
+                                <span className="text-[#00ff41]/50 text-[10px]">DATABASE_LINK</span>
+                            </div>
+                        ) : isPlayer ? (
+                            <div className="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-white text-sm font-bold flex items-center gap-2">
+                                        <User className="w-4 h-4 text-[#00ff41]" /> OPERADOR: {currentUser!.username}
+                                    </p>
+                                    <p className="text-[#00ff41]/50 text-[10px] mt-1">
+                                        PROGRESO: {completedCount}/{sortedChallenges.length} NIVELES // SIGUIENTE: NIVEL {Math.min(nextChallengeIndex + 1, sortedChallenges.length)}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center gap-2 px-3 py-2 rounded border border-[#00ff41]/20 text-[#00ff41]/60 hover:text-[#00ff41] hover:bg-[#00ff41]/10 text-xs transition-colors"
+                                >
+                                    <LogOut className="w-3 h-3" /> SALIR
+                                </button>
+                            </div>
+                        ) : session?.role === 'admin' ? (
+                            <div className="space-y-4">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-white text-sm font-bold flex items-center gap-2">
+                                            <LockKeyhole className="w-4 h-4 text-yellow-400" /> ADMIN_CONSOLE
+                                        </p>
+                                        <p className="text-[#00ff41]/50 text-[10px] mt-1">{participants} PARTICIPANTES REGISTRADOS</p>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            onClick={handleClearRegistry}
+                                            className="flex items-center gap-2 px-3 py-2 rounded border border-red-500/40 text-red-300 hover:bg-red-500/10 text-xs transition-colors"
+                                        >
+                                            <RotateCcw className="w-3 h-3" /> LIMPIAR REGISTRO
+                                        </button>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="flex items-center gap-2 px-3 py-2 rounded border border-[#00ff41]/20 text-[#00ff41]/60 hover:text-[#00ff41] hover:bg-[#00ff41]/10 text-xs transition-colors"
+                                        >
+                                            <LogOut className="w-3 h-3" /> SALIR
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="text-[10px] text-[#00ff41]/40">
+                                    Credenciales admin configuradas: {ADMIN_CREDENTIALS.username} / {ADMIN_CREDENTIALS.password}
+                                </p>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleAuth} className="space-y-4">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-white text-sm font-bold flex items-center gap-2">
+                                            <LockKeyhole className="w-4 h-4 text-[#00ff41]" /> ACCESO CTF ACADEMY
+                                        </p>
+                                        <p className="text-[#00ff41]/50 text-[10px] mt-1">CREA UN USUARIO O INGRESA PARA CONTINUAR TU PROGRESO</p>
+                                    </div>
+                                    <div className="flex bg-black/60 border border-[#00ff41]/20 rounded-lg p-1">
+                                        {(['login', 'register'] as const).map(mode => (
+                                            <button
+                                                key={mode}
+                                                type="button"
+                                                onClick={() => {
+                                                    setAuthMode(mode);
+                                                    setAuthMessage('');
+                                                }}
+                                                className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-colors ${authMode === mode
+                                                    ? 'bg-[#00ff41] text-black'
+                                                    : 'text-[#00ff41]/50 hover:text-[#00ff41]'
+                                                    }`}
+                                            >
+                                                {mode === 'login' ? 'INGRESAR' : 'CREAR'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3">
+                                    <input
+                                        value={authUsername}
+                                        onChange={event => setAuthUsername(event.target.value)}
+                                        placeholder="usuario"
+                                        className="bg-black border border-[#00ff41]/20 rounded px-3 py-2 text-xs text-white placeholder:text-[#00ff41]/25 focus:outline-none focus:border-[#00ff41]"
+                                    />
+                                    <input
+                                        type="password"
+                                        value={authPassword}
+                                        onChange={event => setAuthPassword(event.target.value)}
+                                        placeholder="contraseña"
+                                        className="bg-black border border-[#00ff41]/20 rounded px-3 py-2 text-xs text-white placeholder:text-[#00ff41]/25 focus:outline-none focus:border-[#00ff41]"
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 rounded bg-[#00ff41] text-black text-xs font-bold hover:bg-[#00ff41]/90 transition-colors"
+                                    >
+                                        {authMode === 'login' ? 'ENTRAR' : 'CREAR'}
+                                    </button>
+                                </div>
+                                {authMessage && (
+                                    <p className="text-[10px] text-yellow-300 border border-yellow-500/20 bg-yellow-500/5 rounded p-2">
+                                        {authMessage}
+                                    </p>
+                                )}
+                            </form>
+                        )}
+                    </div>
+
+                    <div className="bg-black/50 border border-[#00ff41]/20 rounded-lg p-4">
+                        <h2 className="text-white text-sm font-bold flex items-center gap-2 mb-3">
+                            <Trophy className="w-4 h-4 text-yellow-400" /> PODIO_FINAL
+                        </h2>
+                        {leaderboard.length > 0 ? (
+                            <div className="space-y-2">
+                                {leaderboard.slice(0, 5).map((entry, index) => (
+                                    <div key={entry.username} className="flex items-center justify-between gap-3 text-[10px] border border-[#00ff41]/10 rounded px-3 py-2 bg-black/40">
+                                        <span className="text-white font-bold">#{index + 1} {entry.username}</span>
+                                        <span className="text-[#00ff41]/70">{formatDuration(entry.durationMs)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-[#00ff41]/45 text-[10px] leading-relaxed">
+                                Aún nadie completa todos los ejercicios. El podio se ordena por menor tiempo total.
+                            </p>
+                        )}
+                    </div>
+                </motion.div>
+
+                {isPlayer && (
+                    <>
+                        {/* Category Filters */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="flex flex-wrap gap-2 mb-6"
                         >
-                            <span className="flex items-center gap-1.5">
-                                {cat !== 'ALL' && CATEGORY_ICONS[cat]}
-                                {cat}
-                            </span>
-                        </button>
-                    ))}
-                </motion.div>
+                            {categories.map(cat => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setFilter(cat)}
+                                    className={`px-3 py-1 rounded text-xs border transition-all ${filter === cat
+                                        ? 'bg-[#00ff41]/20 border-[#00ff41]/60 text-[#00ff41]'
+                                        : 'bg-transparent border-[#00ff41]/15 text-[#00ff41]/50 hover:border-[#00ff41]/40 hover:text-[#00ff41]/80'
+                                        }`}
+                                >
+                                    <span className="flex items-center gap-1.5">
+                                        {cat !== 'ALL' && CATEGORY_ICONS[cat]}
+                                        {cat}
+                                    </span>
+                                </button>
+                            ))}
+                        </motion.div>
 
-                {/* Difficulty Legend */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="flex flex-wrap gap-4 mb-6 text-[10px]"
-                >
-                    {(['EASY', 'MEDIUM', 'HARD', 'INSANE'] as Difficulty[]).map(d => (
-                        <span key={d} className="flex items-center gap-1.5" style={{ color: DIFFICULTY_CONFIG[d].color }}>
-                            {DIFFICULTY_CONFIG[d].icon} {d}
-                        </span>
-                    ))}
-                </motion.div>
+                        {/* Difficulty Legend */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                            className="flex flex-wrap gap-4 mb-6 text-[10px]"
+                        >
+                            {(['EASY', 'MEDIUM', 'HARD', 'INSANE'] as Difficulty[]).map(d => (
+                                <span key={d} className="flex items-center gap-1.5" style={{ color: DIFFICULTY_CONFIG[d].color }}>
+                                    {DIFFICULTY_CONFIG[d].icon} {d}
+                                </span>
+                            ))}
+                        </motion.div>
 
-                {/* Challenge List */}
-                <div className="space-y-2">
-                    {filtered.map((challenge, index) => {
+                        {/* Challenge List */}
+                        <div className="space-y-2">
+                            {filtered.map((challenge, index) => {
                         const diff = DIFFICULTY_CONFIG[challenge.difficulty];
                         const isExpanded = expandedId === challenge.id;
+                        const isUnlocked = canAccessChallenge(currentUser, challenge.id, sortedChallenges.map(item => item.id));
+                        const completed = isChallengeCompleted(currentUser, challenge.id);
 
                         return (
                             <motion.div
@@ -161,9 +379,9 @@ const CTFChallenges = () => {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.1 + index * 0.03 }}
                                 onClick={() => setExpandedId(isExpanded ? null : challenge.id)}
-                                className="border rounded-lg cursor-pointer transition-all hover:shadow-[0_0_15px_rgba(0,255,65,0.08)]"
+                                className={`border rounded-lg cursor-pointer transition-all hover:shadow-[0_0_15px_rgba(0,255,65,0.08)] ${!isUnlocked ? 'opacity-55' : ''}`}
                                 style={{
-                                    borderColor: isExpanded ? diff.border : 'rgba(0,255,65,0.12)',
+                                    borderColor: completed ? 'rgba(0,255,65,0.45)' : isExpanded ? diff.border : 'rgba(0,255,65,0.12)',
                                     backgroundColor: isExpanded ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.3)',
                                 }}
                             >
@@ -203,6 +421,11 @@ const CTFChallenges = () => {
                                         {challenge.solves} solves
                                     </span>
 
+                                    <span className={`text-[10px] shrink-0 hidden md:flex items-center gap-1 ${completed ? 'text-[#00ff41]' : isUnlocked ? 'text-yellow-300' : 'text-red-300/70'}`}>
+                                        {completed ? <CheckCircle2 className="w-3 h-3" /> : isUnlocked ? <Wifi className="w-3 h-3" /> : <LockKeyhole className="w-3 h-3" />}
+                                        {completed ? 'DONE' : isUnlocked ? 'OPEN' : 'LOCKED'}
+                                    </span>
+
                                     {/* Expand Arrow */}
                                     <ChevronRight
                                         className={`w-4 h-4 text-[#00ff41]/30 transition-transform shrink-0 ${isExpanded ? 'rotate-90' : ''}`}
@@ -227,19 +450,28 @@ const CTFChallenges = () => {
                                                 <span>{challenge.solves} OPERATIVES CLEARED</span>
                                             </div>
                                             <button
-                                                className="mt-1 px-4 py-2 rounded text-xs font-bold border transition-all hover:shadow-[0_0_20px_rgba(0,255,65,0.2)]"
+                                                disabled={!isUnlocked || !challenge.active}
+                                                className={`mt-1 px-4 py-2 rounded text-xs font-bold border transition-all ${isUnlocked && challenge.active
+                                                    ? 'hover:shadow-[0_0_20px_rgba(0,255,65,0.2)]'
+                                                    : 'cursor-not-allowed opacity-60'
+                                                    }`}
                                                 style={{
-                                                    borderColor: diff.color,
-                                                    color: '#050505',
-                                                    backgroundColor: diff.color,
+                                                    borderColor: isUnlocked ? diff.color : 'rgba(255,68,68,0.35)',
+                                                    color: isUnlocked && challenge.active ? '#050505' : '#ff9999',
+                                                    backgroundColor: isUnlocked && challenge.active ? diff.color : 'rgba(255,68,68,0.08)',
                                                 }}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
+                                                    if (!isUnlocked || !challenge.active) return;
                                                     navigateTo(`/ctf/challenge/${challenge.id}`);
                                                 }}
                                             >
                                                 <span className="flex items-center gap-2">
-                                                    {challenge.active ? (
+                                                    {completed ? (
+                                                        <><CheckCircle2 className="w-3 h-3" /> COMPLETED</>
+                                                    ) : !isUnlocked ? (
+                                                        <><LockKeyhole className="w-3 h-3" /> COMPLETE_PREVIOUS_LEVEL</>
+                                                    ) : challenge.active ? (
                                                         <><Wifi className="w-3 h-3" /> ACCESS_CHALLENGE</>
                                                     ) : (
                                                         <><WifiOff className="w-3 h-3" /> OFFLINE</>
@@ -253,6 +485,8 @@ const CTFChallenges = () => {
                         );
                     })}
                 </div>
+                    </>
+                )}
 
                 {/* Footer */}
                 <div className="mt-10 pt-4 border-t border-[#00ff41]/10 flex flex-wrap justify-between items-center text-[9px] text-[#00ff41]/40 uppercase tracking-[0.15em]">
