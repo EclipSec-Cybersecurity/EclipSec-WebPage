@@ -11,9 +11,18 @@ import {
 import { NAV_ROUTES } from '../config/site';
 import {
     challenges,
+    sortedChallenges,
     type Challenge, type Difficulty, type Category,
     CTF_SERVER,
 } from '../config/challenges';
+import {
+    canAccessChallenge,
+    completeAcademyChallenge,
+    getAcademyState,
+    getNextChallengeIndex,
+    isChallengeCompleted,
+    type AcademyUser,
+} from '../lib/ctfAcademy';
 
 /* Lazy-load WebTerminal para no bloquear el bundle principal */
 const WebTerminal = lazy(() => import('../components/WebTerminal'));
@@ -112,6 +121,8 @@ const CTFChallengeLab = () => {
     const [viewMode, setViewMode] = useState<ViewMode>('split');
     const [flagInput, setFlagInput] = useState('');
     const [flagResult, setFlagResult] = useState<'correct' | 'wrong' | null>(null);
+    const [flagMessage, setFlagMessage] = useState('');
+    const [currentUser, setCurrentUser] = useState<AcademyUser | null>(null);
     const [copied, setCopied] = useState(false);
     const [showHints, setShowHints] = useState(false);
     const [revealedHints, setRevealedHints] = useState<number[]>([]);
@@ -130,16 +141,39 @@ const CTFChallengeLab = () => {
 
     /* ── Find challenge ─────────────────────────────────────────── */
     useEffect(() => {
-        const found = challenges.find(c => c.id === challengeId);
-        if (!found) { navigate(NAV_ROUTES.ctfChallenges); return; }
-        setChallenge(found);
+        let mounted = true;
 
-        // Si no tiene terminal, forzamos vista de 'challenge' para ocupar todo el ancho
-        if (!found.connection.wsPort && !found.connection.wsUrl) {
-            setViewMode('challenge');
-        }
+        const loadChallenge = async () => {
+            const found = challenges.find(c => c.id === challengeId);
+            if (!found) { navigate(NAV_ROUTES.ctfChallenges); return; }
 
-        setTimeout(() => setConnState(found.active ? 'connected' : 'error'), 1200);
+            const academyState = await getAcademyState();
+            const user = academyState.currentUser;
+            const challengeIds = sortedChallenges.map(item => item.id);
+
+            if (!mounted) return;
+
+            setCurrentUser(user);
+            if (!user || !canAccessChallenge(user, found.id, challengeIds)) {
+                navigate(NAV_ROUTES.ctfChallenges, { replace: true });
+                return;
+            }
+
+            setChallenge(found);
+
+            // Si no tiene terminal, forzamos vista de 'challenge' para ocupar todo el ancho
+            if (!found.connection.wsPort && !found.connection.wsUrl) {
+                setViewMode('challenge');
+            }
+
+            setTimeout(() => setConnState(found.active ? 'connected' : 'error'), 1200);
+        };
+
+        void loadChallenge();
+
+        return () => {
+            mounted = false;
+        };
     }, [challengeId, navigate]);
 
     /* ── Helpers ────────────────────────────────────────────────── */
@@ -180,18 +214,30 @@ const CTFChallengeLab = () => {
         return `ws://${ch.connection.host}:${ch.connection.wsPort}/ws`;
     };
 
-    const handleFlag = (e: React.FormEvent) => {
+    const handleFlag = async (e: React.FormEvent) => {
         e.preventDefault();
         const input = flagInput.trim();
         if (!challenge || !input) return;
 
-        if (challenge.flag && input === challenge.flag) {
-            setFlagResult('correct');
-        } else {
+        if (!currentUser || !canAccessChallenge(currentUser, challenge.id, sortedChallenges.map(item => item.id))) {
             setFlagResult('wrong');
+            setFlagMessage('Debes resolver los niveles en orden.');
+            return;
         }
 
-        setTimeout(() => setFlagResult(null), 3000);
+        const result = await completeAcademyChallenge(challenge.id, input);
+        if (result.data) {
+            setCurrentUser(result.data.currentUser);
+        }
+
+        setFlagResult(result.ok ? 'correct' : 'wrong');
+        setFlagMessage(result.message);
+        if (result.ok) setFlagInput('');
+
+        setTimeout(() => {
+            setFlagResult(null);
+            setFlagMessage('');
+        }, 3000);
     };
 
     /* ── Loading state ──────────────────────────────────────────── */
@@ -211,6 +257,8 @@ const CTFChallengeLab = () => {
     const hasTerminal = !!(challenge.connection.wsUrl || challenge.connection.wsPort);
     const cmd = connectionCmd(challenge);
     const ws = wsUrl(challenge);
+    const completed = isChallengeCompleted(currentUser, challenge.id);
+    const nextChallengeIndex = getNextChallengeIndex(currentUser);
 
     /* ── Page ───────────────────────────────────────────────────── */
     return (
@@ -262,6 +310,12 @@ const CTFChallengeLab = () => {
 
                     {/* Right: controls */}
                     <div className="flex items-center gap-3">
+                        {currentUser && (
+                            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#00ff41]/20 bg-black/40 text-[10px] font-black tracking-widest text-[#00ff41]/70">
+                                {currentUser.username} // {currentUser.completedChallengeIds.length}/{challenges.length}
+                            </div>
+                        )}
+
                         {/* Connection status */}
                         <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border bg-black/40 text-[10px] font-black tracking-widest ${connState === 'connected' ? 'border-[#00ff41]/30 text-[#00ff41]' :
                             connState === 'error' ? 'border-red-500/30 text-red-500' :
@@ -487,6 +541,7 @@ const CTFChallengeLab = () => {
                                     ['OPERATIVE', challenge.author],
                                     ['SOLVES', String(challenge.solves)],
                                     ['CHLG_ID', challenge.id.toUpperCase()],
+                                    ['ACADEMY', completed ? 'COMPLETADO' : `NIVEL ${nextChallengeIndex + 1}`],
                                     ...(challenge.flagFormat ? [['FORMAT', challenge.flagFormat]] : []),
                                 ].map(([k, v]) => (
                                     <div key={k} className="flex justify-between items-center gap-4">
@@ -520,7 +575,7 @@ const CTFChallengeLab = () => {
                                             ? 'bg-green-500/20 border-green-500/50 text-green-400'
                                             : 'bg-red-500/20 border-red-500/50 text-red-400'
                                             }`}>
-                                        {flagResult === 'correct' ? '>> ACCESS GRANTED <<' : '>> AUTH_FAILURE <<'}
+                                        {flagResult === 'correct' ? `>> ${flagMessage || 'ACCESS GRANTED'} <<` : `>> ${flagMessage || 'AUTH_FAILURE'} <<`}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
