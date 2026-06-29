@@ -1,4 +1,5 @@
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
+import { createClient, type RedisClientType } from 'redis';
 import { sortedChallenges } from '../src/config/challenges';
 import { CTF_FLAGS } from './ctf-flags';
 
@@ -71,18 +72,62 @@ const normalizeUsername = (username: unknown) => String(username ?? '').trim().t
 const normalizePassword = (password: unknown) => String(password ?? '').trim();
 
 const getRedisConfig = () => {
-    const url = process.env.CTF_REDIS_REST_URL || process.env.KV_REST_API_URL;
-    const token = process.env.CTF_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+    const url =
+        process.env.CTF_REDIS_URL ||
+        process.env.REDIS_URL ||
+        process.env.CTF_REDIS_REST_URL ||
+        process.env.KV_REST_API_URL ||
+        process.env.UPSTASH_REDIS_REST_URL;
+    const token =
+        process.env.CTF_REDIS_REST_TOKEN ||
+        process.env.KV_REST_API_TOKEN ||
+        process.env.UPSTASH_REDIS_REST_TOKEN;
 
-    if (!url || !token) {
-        throw new Error('Missing Redis REST environment variables.');
+    if (!url) {
+        throw new Error('Missing Redis URL environment variable.');
     }
 
-    return { url: url.replace(/\/$/, ''), token };
+    const cleanUrl = url.replace(/\/$/, '');
+    const isTcpRedis = cleanUrl.startsWith('redis://') || cleanUrl.startsWith('rediss://');
+
+    if (!isTcpRedis && !token) {
+        throw new Error('Missing Redis REST token. REST URLs require a token; redis:// URLs include auth in the URL.');
+    }
+
+    return { url: cleanUrl, token, isTcpRedis };
+};
+
+let redisClientPromise: Promise<RedisClientType> | null = null;
+
+const getRedisClient = async () => {
+    const { url } = getRedisConfig();
+
+    if (!redisClientPromise) {
+        const client = createClient({
+            url,
+            socket: {
+                reconnectStrategy: retries => Math.min(retries * 50, 500),
+            },
+        });
+
+        client.on('error', error => {
+            console.error('Redis client error:', error);
+        });
+
+        redisClientPromise = client.connect().then(() => client as RedisClientType);
+    }
+
+    return redisClientPromise;
 };
 
 const redis = async <T = unknown>(command: string, ...args: Array<string | number>) => {
-    const { url, token } = getRedisConfig();
+    const { url, token, isTcpRedis } = getRedisConfig();
+
+    if (isTcpRedis) {
+        const client = await getRedisClient();
+        return await client.sendCommand([command, ...args.map(String)]) as T;
+    }
+
     const response = await fetch(url, {
         method: 'POST',
         headers: {
