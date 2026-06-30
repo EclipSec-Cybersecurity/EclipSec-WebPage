@@ -207,7 +207,7 @@ const CTFChallengeLab = () => {
                 const urlObj = new URL(ch.connection.url);
                 const wsProtocol = urlObj.protocol === 'https:' ? 'wss:' : 'ws:';
                 return `${wsProtocol}//${urlObj.host}/ws`;
-            } catch (e) {
+            } catch {
                 // fallback
             }
         }
