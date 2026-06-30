@@ -1,5 +1,5 @@
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
-import { createClient, type RedisClientType } from 'redis';
+import Redis from 'ioredis';
 import { CTF_FLAGS } from './ctf-flags';
 
 /* ─────────────────────────────────────────────────────────────────
@@ -70,42 +70,38 @@ interface VercelResponse {
 }
 
 /* ─────────────────────────────────────────────────────────────────
- * Redis — TCP client via `redis` package
+ * Redis — ioredis TCP client (battle-tested in serverless)
  *
- * Uses a single env var:
- *   KV_REST_API_REDIS_URL  (redis://... from Redis Cloud)
+ * Env var: KV_REST_API_REDIS_URL  (redis://... from Redis Cloud)
  *
- * The client is created once and reused across warm invocations.
+ * ioredis handles reconnection, TLS, and URL parsing natively.
+ * Connection is lazy — created on first request, reused on warm.
  * ───────────────────────────────────────────────────────────────── */
-const getRedisUrl = () => {
+let redis: Redis | null = null;
+
+const getRedis = (): Redis => {
+    if (redis) return redis;
+
     const url = process.env.KV_REST_API_REDIS_URL;
     if (!url) {
         throw new Error('Missing KV_REST_API_REDIS_URL environment variable.');
     }
-    return url;
-};
 
-let clientPromise: Promise<RedisClientType> | null = null;
+    redis = new Redis(url, {
+        connectTimeout: 5000,
+        maxRetriesPerRequest: 2,
+        lazyConnect: true,          // don't connect until first command
+        retryStrategy: (times) => {
+            if (times > 3) return null; // stop retrying after 3 attempts
+            return Math.min(times * 200, 1000);
+        },
+    });
 
-const getRedis = async (): Promise<RedisClientType> => {
-    if (!clientPromise) {
-        const url = getRedisUrl();
-        const client = createClient({
-            url,
-            socket: {
-                connectTimeout: 10_000,
-                reconnectStrategy: (retries) => Math.min(retries * 100, 3000),
-            },
-        });
+    redis.on('error', (err) => {
+        console.error('[Redis] error:', err.message);
+    });
 
-        client.on('error', (err) => {
-            console.error('[Redis] client error:', err.message);
-        });
-
-        clientPromise = client.connect().then(() => client as RedisClientType);
-    }
-
-    return clientPromise;
+    return redis;
 };
 
 /* ─────────────────────────────────────────────────────────────────
@@ -173,23 +169,23 @@ const safeUser = (user: AcademyUser | null): PublicAcademyUser | null => {
 };
 
 /* ─────────────────────────────────────────────────────────────────
- * Data access — typed wrappers around the redis TCP client
+ * Data access — ioredis wrappers
  * ───────────────────────────────────────────────────────────────── */
 const getUser = async (username: string): Promise<AcademyUser | null> => {
-    const redis = await getRedis();
-    const stored = await redis.get(key.user(username));
-    return stored ? JSON.parse(stored as string) as AcademyUser : null;
+    const r = getRedis();
+    const stored = await r.get(key.user(username));
+    return stored ? JSON.parse(stored) as AcademyUser : null;
 };
 
 const saveUser = async (user: AcademyUser) => {
-    const redis = await getRedis();
-    await redis.set(key.user(user.username), JSON.stringify(user));
+    const r = getRedis();
+    await r.set(key.user(user.username), JSON.stringify(user));
 };
 
 const createSession = async (session: AcademySession) => {
-    const redis = await getRedis();
+    const r = getRedis();
     const token = randomBytes(32).toString('hex');
-    await redis.set(key.session(token), JSON.stringify(session), { EX: SESSION_TTL_SECONDS });
+    await r.set(key.session(token), JSON.stringify(session), 'EX', SESSION_TTL_SECONDS);
     return token;
 };
 
@@ -197,27 +193,27 @@ const getSession = async (request: VercelRequest) => {
     const token = readToken(request);
     if (!token) return { token: null, session: null as AcademySession | null };
 
-    const redis = await getRedis();
-    const stored = await redis.get(key.session(token));
+    const r = getRedis();
+    const stored = await r.get(key.session(token));
     return {
         token,
-        session: stored ? JSON.parse(stored as string) as AcademySession : null,
+        session: stored ? JSON.parse(stored) as AcademySession : null,
     };
 };
 
 const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
-    const redis = await getRedis();
-    // zRange without BY defaults to rank-based range
-    const rows = await redis.zRange(key.leaderboard, 0, 9);
+    const r = getRedis();
+    // ZRANGE key 0 9 WITHSCORES → [member, score, member, score, ...]
+    const rows = await r.zrange(key.leaderboard, 0, 9, 'WITHSCORES');
 
     const entries: LeaderboardEntry[] = [];
 
-    // zRange returns string[] of member names; fetch scores individually
-    for (const username of rows) {
-        const score = await redis.zScore(key.leaderboard, username);
+    for (let i = 0; i < rows.length; i += 2) {
+        const username = rows[i];
+        const durationMs = Number(rows[i + 1]);
         const user = await getUser(username);
-        if (user?.completedAt && score !== null && score !== undefined) {
-            entries.push({ username, durationMs: Number(score), completedAt: user.completedAt });
+        if (user?.completedAt) {
+            entries.push({ username, durationMs, completedAt: user.completedAt });
         }
     }
 
@@ -225,10 +221,10 @@ const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
 };
 
 const getAcademyState = async (session: AcademySession | null) => {
-    const redis = await getRedis();
+    const r = getRedis();
     const currentUser = session?.role === 'player' ? safeUser(await getUser(session.username)) : null;
     const leaderboard = await getLeaderboard();
-    const participants = await redis.sCard(key.users);
+    const participants = await r.scard(key.users);
 
     return {
         session,
@@ -256,7 +252,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     }
 
     try {
-        const redis = await getRedis();
+        const r = getRedis();
         const body = parseBody(request);
         const action = String(body.action ?? '');
         const { token, session } = await getSession(request);
@@ -297,14 +293,14 @@ export default async function handler(request: VercelRequest, response: VercelRe
                 completionTimes: {},
             };
 
-            // SET with NX — only creates if key doesn't exist
-            const created = await redis.set(key.user(username), JSON.stringify(user), { NX: true });
+            // SET NX — only creates if key doesn't exist
+            const created = await r.set(key.user(username), JSON.stringify(user), 'NX');
             if (!created) {
                 json(response, 409, { ok: false, message: 'Ese usuario ya existe.' });
                 return;
             }
 
-            await redis.sAdd(key.users, username);
+            await r.sadd(key.users, username);
             const nextSession = { username, role: 'player' as const };
             const nextToken = await createSession(nextSession);
 
@@ -351,7 +347,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
         }
 
         if (action === 'logout') {
-            if (token) await redis.del(key.session(token));
+            if (token) await r.del(key.session(token));
             json(response, 200, { ok: true, message: 'Sesión cerrada.' });
             return;
         }
@@ -362,10 +358,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
                 return;
             }
 
-            const usernames = await redis.sMembers(key.users);
-            await Promise.all(usernames.map(username => redis.del(key.user(username))));
-            await redis.del(key.users);
-            await redis.del(key.leaderboard);
+            const usernames = await r.smembers(key.users);
+            await Promise.all(usernames.map(u => r.del(key.user(u))));
+            await r.del(key.users);
+            await r.del(key.leaderboard);
             json(response, 200, {
                 ok: true,
                 message: 'Registro de participantes limpiado.',
@@ -423,7 +419,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
             const completedAll = user.completedChallengeIds.length === challengeIds.length;
             if (completedAll) {
                 user.completedAt = now;
-                await redis.zAdd(key.leaderboard, { score: now - user.startedAt, value: user.username });
+                await r.zadd(key.leaderboard, now - user.startedAt, user.username);
             }
 
             await saveUser(user);
@@ -437,11 +433,16 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
         json(response, 400, { ok: false, message: 'Acción inválida.' });
     } catch (error) {
-        console.error('[CTF Academy] error:', error);
-        const message = error instanceof Error && (error.message.includes('Redis') || error.message.includes('Missing') || error.message.includes('connect'))
-            ? 'Base de datos no configurada o no disponible.'
-            : 'Error interno del servidor.';
+        console.error('[CTF Academy] handler error:', error);
+        const isDbError = error instanceof Error &&
+            (error.message.includes('Redis') || error.message.includes('Missing') ||
+             error.message.includes('connect') || error.message.includes('ECONNREFUSED'));
 
-        json(response, 500, { ok: false, message });
+        json(response, 500, {
+            ok: false,
+            message: isDbError
+                ? 'Base de datos no configurada o no disponible.'
+                : 'Error interno del servidor.',
+        });
     }
 }
