@@ -1,13 +1,29 @@
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 import { createClient, type RedisClientType } from 'redis';
-import { sortedChallenges } from '../src/config/challenges';
 import { CTF_FLAGS } from './ctf-flags';
 
+/* ─────────────────────────────────────────────────────────────────
+ * Constants
+ * ───────────────────────────────────────────────────────────────── */
 const PREFIX = 'ctf-academy:v1';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 const ADMIN_USERNAME = process.env.CTF_ADMIN_USER || 'admin';
 const ADMIN_PASSWORD = process.env.CTF_ADMIN_PASSWORD || 'EclipSecAdmin2026!';
 
+/**
+ * Challenge IDs in solve-order.
+ * Kept in sync with src/config/challenges.ts — sorted by difficulty.
+ * Duplicated here so the serverless function has zero frontend deps.
+ */
+const challengeIds: string[] = [
+    'web-001', 'web-002', 'web-003', 'web-009',            // EASY
+    'web-004', 'web-005', 'web-006', 'web-007', 'web-010', // MEDIUM
+    'web-008', 'web-011',                                   // HARD
+];
+
+/* ─────────────────────────────────────────────────────────────────
+ * Types
+ * ───────────────────────────────────────────────────────────────── */
 type AcademyRole = 'player' | 'admin';
 
 interface AcademyUser {
@@ -53,7 +69,48 @@ interface VercelResponse {
     setHeader: (name: string, value: string) => void;
 }
 
-const challengeIds = sortedChallenges.map(challenge => challenge.id);
+/* ─────────────────────────────────────────────────────────────────
+ * Redis — TCP client via `redis` package
+ *
+ * Uses a single env var:
+ *   KV_REST_API_REDIS_URL  (redis://... from Redis Cloud)
+ *
+ * The client is created once and reused across warm invocations.
+ * ───────────────────────────────────────────────────────────────── */
+const getRedisUrl = () => {
+    const url = process.env.KV_REST_API_REDIS_URL;
+    if (!url) {
+        throw new Error('Missing KV_REST_API_REDIS_URL environment variable.');
+    }
+    return url;
+};
+
+let clientPromise: Promise<RedisClientType> | null = null;
+
+const getRedis = async (): Promise<RedisClientType> => {
+    if (!clientPromise) {
+        const url = getRedisUrl();
+        const client = createClient({
+            url,
+            socket: {
+                connectTimeout: 10_000,
+                reconnectStrategy: (retries) => Math.min(retries * 100, 3000),
+            },
+        });
+
+        client.on('error', (err) => {
+            console.error('[Redis] client error:', err.message);
+        });
+
+        clientPromise = client.connect().then(() => client as RedisClientType);
+    }
+
+    return clientPromise;
+};
+
+/* ─────────────────────────────────────────────────────────────────
+ * Key helpers
+ * ───────────────────────────────────────────────────────────────── */
 const flagByChallenge = new Map(Object.entries(CTF_FLAGS));
 
 const key = {
@@ -63,6 +120,9 @@ const key = {
     leaderboard: `${PREFIX}:leaderboard`,
 };
 
+/* ─────────────────────────────────────────────────────────────────
+ * Helpers
+ * ───────────────────────────────────────────────────────────────── */
 const json = (response: VercelResponse, status: number, payload: unknown) => {
     response.setHeader('Cache-Control', 'no-store');
     response.status(status).json(payload);
@@ -70,80 +130,6 @@ const json = (response: VercelResponse, status: number, payload: unknown) => {
 
 const normalizeUsername = (username: unknown) => String(username ?? '').trim().toLowerCase();
 const normalizePassword = (password: unknown) => String(password ?? '').trim();
-
-const getRedisConfig = () => {
-    const url =
-        process.env.CTF_REDIS_URL ||
-        process.env.REDIS_URL ||
-        process.env.CTF_REDIS_REST_URL ||
-        process.env.KV_REST_API_URL ||
-        process.env.UPSTASH_REDIS_REST_URL;
-    const token =
-        process.env.CTF_REDIS_REST_TOKEN ||
-        process.env.KV_REST_API_TOKEN ||
-        process.env.UPSTASH_REDIS_REST_TOKEN;
-
-    if (!url) {
-        throw new Error('Missing Redis URL environment variable.');
-    }
-
-    const cleanUrl = url.replace(/\/$/, '');
-    const isTcpRedis = cleanUrl.startsWith('redis://') || cleanUrl.startsWith('rediss://');
-
-    if (!isTcpRedis && !token) {
-        throw new Error('Missing Redis REST token. REST URLs require a token; redis:// URLs include auth in the URL.');
-    }
-
-    return { url: cleanUrl, token, isTcpRedis };
-};
-
-let redisClientPromise: Promise<RedisClientType> | null = null;
-
-const getRedisClient = async () => {
-    const { url } = getRedisConfig();
-
-    if (!redisClientPromise) {
-        const client = createClient({
-            url,
-            socket: {
-                reconnectStrategy: retries => Math.min(retries * 50, 500),
-            },
-        });
-
-        client.on('error', error => {
-            console.error('Redis client error:', error);
-        });
-
-        redisClientPromise = client.connect().then(() => client as RedisClientType);
-    }
-
-    return redisClientPromise;
-};
-
-const redis = async <T = unknown>(command: string, ...args: Array<string | number>) => {
-    const { url, token, isTcpRedis } = getRedisConfig();
-
-    if (isTcpRedis) {
-        const client = await getRedisClient();
-        return await client.sendCommand([command, ...args.map(String)]) as T;
-    }
-
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([command, ...args]),
-    });
-
-    if (!response.ok) {
-        throw new Error(`Redis command failed: ${command}`);
-    }
-
-    const payload = await response.json() as { result: T };
-    return payload.result;
-};
 
 const parseBody = (request: VercelRequest) => {
     if (typeof request.body === 'string') {
@@ -186,18 +172,24 @@ const safeUser = (user: AcademyUser | null): PublicAcademyUser | null => {
     };
 };
 
-const getUser = async (username: string) => {
-    const stored = await redis<string | null>('get', key.user(username));
-    return stored ? JSON.parse(stored) as AcademyUser : null;
+/* ─────────────────────────────────────────────────────────────────
+ * Data access — typed wrappers around the redis TCP client
+ * ───────────────────────────────────────────────────────────────── */
+const getUser = async (username: string): Promise<AcademyUser | null> => {
+    const redis = await getRedis();
+    const stored = await redis.get(key.user(username));
+    return stored ? JSON.parse(stored as string) as AcademyUser : null;
 };
 
 const saveUser = async (user: AcademyUser) => {
-    await redis('set', key.user(user.username), JSON.stringify(user));
+    const redis = await getRedis();
+    await redis.set(key.user(user.username), JSON.stringify(user));
 };
 
 const createSession = async (session: AcademySession) => {
+    const redis = await getRedis();
     const token = randomBytes(32).toString('hex');
-    await redis('set', key.session(token), JSON.stringify(session), 'EX', SESSION_TTL_SECONDS);
+    await redis.set(key.session(token), JSON.stringify(session), { EX: SESSION_TTL_SECONDS });
     return token;
 };
 
@@ -205,23 +197,27 @@ const getSession = async (request: VercelRequest) => {
     const token = readToken(request);
     if (!token) return { token: null, session: null as AcademySession | null };
 
-    const stored = await redis<string | null>('get', key.session(token));
+    const redis = await getRedis();
+    const stored = await redis.get(key.session(token));
     return {
         token,
-        session: stored ? JSON.parse(stored) as AcademySession : null,
+        session: stored ? JSON.parse(stored as string) as AcademySession : null,
     };
 };
 
 const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
-    const rows = await redis<string[]>('zrange', key.leaderboard, 0, 9, 'WITHSCORES');
+    const redis = await getRedis();
+    // zRange without BY defaults to rank-based range
+    const rows = await redis.zRange(key.leaderboard, 0, 9);
+
     const entries: LeaderboardEntry[] = [];
 
-    for (let index = 0; index < rows.length; index += 2) {
-        const username = rows[index];
-        const durationMs = Number(rows[index + 1]);
+    // zRange returns string[] of member names; fetch scores individually
+    for (const username of rows) {
+        const score = await redis.zScore(key.leaderboard, username);
         const user = await getUser(username);
-        if (user?.completedAt) {
-            entries.push({ username, durationMs, completedAt: user.completedAt });
+        if (user?.completedAt && score !== null && score !== undefined) {
+            entries.push({ username, durationMs: Number(score), completedAt: user.completedAt });
         }
     }
 
@@ -229,9 +225,10 @@ const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
 };
 
 const getAcademyState = async (session: AcademySession | null) => {
+    const redis = await getRedis();
     const currentUser = session?.role === 'player' ? safeUser(await getUser(session.username)) : null;
     const leaderboard = await getLeaderboard();
-    const participants = await redis<number>('scard', key.users);
+    const participants = await redis.sCard(key.users);
 
     return {
         session,
@@ -249,6 +246,9 @@ const requireSession = (session: AcademySession | null, role?: AcademyRole) => {
     return session;
 };
 
+/* ─────────────────────────────────────────────────────────────────
+ * Handler
+ * ───────────────────────────────────────────────────────────────── */
 export default async function handler(request: VercelRequest, response: VercelResponse) {
     if (request.method !== 'POST') {
         json(response, 405, { ok: false, message: 'Method not allowed.' });
@@ -256,6 +256,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     }
 
     try {
+        const redis = await getRedis();
         const body = parseBody(request);
         const action = String(body.action ?? '');
         const { token, session } = await getSession(request);
@@ -296,13 +297,14 @@ export default async function handler(request: VercelRequest, response: VercelRe
                 completionTimes: {},
             };
 
-            const created = await redis<string | null>('set', key.user(username), JSON.stringify(user), 'NX');
-            if (created !== 'OK') {
+            // SET with NX — only creates if key doesn't exist
+            const created = await redis.set(key.user(username), JSON.stringify(user), { NX: true });
+            if (!created) {
                 json(response, 409, { ok: false, message: 'Ese usuario ya existe.' });
                 return;
             }
 
-            await redis('sadd', key.users, username);
+            await redis.sAdd(key.users, username);
             const nextSession = { username, role: 'player' as const };
             const nextToken = await createSession(nextSession);
 
@@ -349,7 +351,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
         }
 
         if (action === 'logout') {
-            if (token) await redis('del', key.session(token));
+            if (token) await redis.del(key.session(token));
             json(response, 200, { ok: true, message: 'Sesión cerrada.' });
             return;
         }
@@ -360,10 +362,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
                 return;
             }
 
-            const usernames = await redis<string[]>('smembers', key.users);
-            await Promise.all(usernames.map(username => redis('del', key.user(username))));
-            await redis('del', key.users);
-            await redis('del', key.leaderboard);
+            const usernames = await redis.sMembers(key.users);
+            await Promise.all(usernames.map(username => redis.del(key.user(username))));
+            await redis.del(key.users);
+            await redis.del(key.leaderboard);
             json(response, 200, {
                 ok: true,
                 message: 'Registro de participantes limpiado.',
@@ -421,7 +423,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
             const completedAll = user.completedChallengeIds.length === challengeIds.length;
             if (completedAll) {
                 user.completedAt = now;
-                await redis('zadd', key.leaderboard, now - user.startedAt, user.username);
+                await redis.zAdd(key.leaderboard, { score: now - user.startedAt, value: user.username });
             }
 
             await saveUser(user);
@@ -435,7 +437,8 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
         json(response, 400, { ok: false, message: 'Acción inválida.' });
     } catch (error) {
-        const message = error instanceof Error && error.message.includes('Redis')
+        console.error('[CTF Academy] error:', error);
+        const message = error instanceof Error && (error.message.includes('Redis') || error.message.includes('Missing') || error.message.includes('connect'))
             ? 'Base de datos no configurada o no disponible.'
             : 'Error interno del servidor.';
 
