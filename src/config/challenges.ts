@@ -87,8 +87,6 @@ const railwayChallenge = (id: string) => ({
  * ───────────────────────────────────────────────────────────────── */
 export const challenges: Challenge[] = [
 
-    // ══════════════════════════════════════════════════════ EASY ══
-
     // ── web-001: Hidden in Plain Sight ──────────────────────────
     {
         id: 'web-001',
@@ -106,6 +104,7 @@ export const challenges: Challenge[] = [
             ...railwayChallenge('web-001'),
         },
         flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{h1dd3n_1n_pl41n_s1ght}',
         hints: ['¿Has revisado el HTML?', 'Los comentarios a veces dicen mucho...'],
         active: true,
     },
@@ -127,6 +126,7 @@ export const challenges: Challenge[] = [
             ...railwayChallenge('web-002'),
         },
         flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{r0b0ts_4r3_y0ur_fr13nd5}',
         hints: ['¿Conoces el archivo robots.txt?', 'Visita las rutas que están "prohibidas".'],
         active: true,
     },
@@ -148,37 +148,15 @@ export const challenges: Challenge[] = [
             ...railwayChallenge('web-003'),
         },
         flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{c00k13_m0nst3r_m4n1pul4t10n}',
         hints: ['Inspecciona las cookies del sitio con DevTools.', 'Cambia el valor de la cookie "role" a algo más poderoso.'],
         active: true,
     },
 
-    // ── web-009: Source Code Leak ────────────────────────────────
-    {
-        id: 'web-009',
-        title: 'Reto 4: Source Code Leak',
-        category: 'WEB',
-        difficulty: 'EASY',
-        points: 150,
-        description: 'Los desarrolladores a veces dejan archivos de respaldo en el servidor. Busca archivos .bak u otros backups que no deberían estar expuestos.',
-        solves: 55,
-        author: 'EclipSec',
-        connection: {
-            type: 'web',
-            host: CTF_SERVER.host,
-            port: 8009,
-            ...railwayChallenge('web-009'),
-        },
-        flagFormat: 'EclipSec{...}',
-        hints: ['¿Qué extensiones usan los archivos de respaldo?', 'Prueba con index.py.bak'],
-        active: true,
-    },
-
-    // ══════════════════════════════════════════════════════ MEDIUM ══
-
     // ── web-004: Ping of Death ──────────────────────────────────
     {
         id: 'web-004',
-        title: 'Reto 5: Ping of Death',
+        title: 'Reto 4: Ping of Death',
         category: 'WEB',
         difficulty: 'MEDIUM',
         points: 250,
@@ -192,6 +170,7 @@ export const challenges: Challenge[] = [
             ...railwayChallenge('web-004'),
         },
         flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{p1ng_0f_d34th_cmdi}',
         hints: ['Intenta encadenar comandos con ; o |', 'Busca archivos interesantes con cat /flag.txt'],
         active: true,
     },
@@ -199,7 +178,7 @@ export const challenges: Challenge[] = [
     // ── web-005: LFI to RCE ─────────────────────────────────────
     {
         id: 'web-005',
-        title: 'Reto 6: LFI to RCE',
+        title: 'Reto 5: LFI to RCE',
         category: 'WEB',
         difficulty: 'MEDIUM',
         points: 300,
@@ -213,14 +192,15 @@ export const challenges: Challenge[] = [
             ...railwayChallenge('web-005'),
         },
         flagFormat: 'EclipSec{...}',
-        hints: ['Observa el parámetro ?file= en la URL.', 'Intenta leer /flag_web005.txt o /etc/passwd usando path traversal.'],
+        flag: 'EclipSec{l0c4l_f1l3_1nclus10n_m4st3r}',
+        hints: ['Observa el parámetro ?file= en la URL.', 'Intenta leer /flag.txt o /etc/passwd usando path traversal.'],
         active: true,
     },
 
     // ── web-006: SQLi Login Bypass ──────────────────────────────
     {
         id: 'web-006',
-        title: 'Reto 7: SQLi Login Bypass',
+        title: 'Reto 6: SQLi Login Bypass',
         category: 'WEB',
         difficulty: 'MEDIUM',
         points: 300,
@@ -234,6 +214,7 @@ export const challenges: Challenge[] = [
             ...railwayChallenge('web-006'),
         },
         flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{sql1_byp4ss_l0g1n}',
         hints: ['Piensa en cómo romper una consulta SQL con comillas simples.', "Clásico: ' OR '1'='1' --"],
         active: true,
     },
@@ -241,7 +222,7 @@ export const challenges: Challenge[] = [
     // ── web-007: IDOR Profiles ──────────────────────────────────
     {
         id: 'web-007',
-        title: 'Reto 8: IDOR Profiles',
+        title: 'Reto 7: IDOR Profiles',
         category: 'WEB',
         difficulty: 'MEDIUM',
         points: 250,
@@ -255,40 +236,15 @@ export const challenges: Challenge[] = [
             ...railwayChallenge('web-007'),
         },
         flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{1d0r_c4n_b3_d4ng3r0us}',
         hints: ['Observa el parámetro ?id= en la URL.', '¿Qué pasa si cambias el ID a 0?'],
         active: true,
     },
 
-    // ── web-010: Headers Matter ─────────────────────────────────
-    {
-        id: 'web-010',
-        title: 'Reto 9: Headers Matter',
-        category: 'WEB',
-        difficulty: 'MEDIUM',
-        points: 300,
-        description: 'El servidor solo permite acceso desde un navegador específico y una IP local. Manipula las cabeceras HTTP para pasar los controles de seguridad.',
-        solves: 30,
-        author: 'EclipSec',
-        connection: {
-            type: 'web',
-            host: CTF_SERVER.host,
-            port: 8010,
-            ...railwayChallenge('web-010'),
-        },
-        flagFormat: 'EclipSec{...}',
-        hints: [
-            'Necesitas modificar dos cabeceras HTTP.',
-            'User-Agent: SecureBrowser1.0 y X-Forwarded-For: 127.0.0.1',
-        ],
-        active: true,
-    },
-
-    // ══════════════════════════════════════════════════════ HARD ══
-
     // ── web-008: Server-Side Template Injection ─────────────────
     {
         id: 'web-008',
-        title: 'Reto 10: Server-Side Template Injection',
+        title: 'Reto 8: Server-Side Template Injection',
         category: 'WEB',
         difficulty: 'HARD',
         points: 500,
@@ -302,9 +258,57 @@ export const challenges: Challenge[] = [
             ...railwayChallenge('web-008'),
         },
         flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{sst1_t3mpl4t3_1nj3ct10n}',
         hints: [
             'Prueba con {{7*7}} en el parámetro name.',
             'Busca clases de Python para acceder a os y leer variables de entorno.',
+        ],
+        active: true,
+    },
+
+    // ── web-009: Source Code Leak ────────────────────────────────
+    {
+        id: 'web-009',
+        title: 'Reto 9: Source Code Leak',
+        category: 'WEB',
+        difficulty: 'EASY',
+        points: 150,
+        description: 'Los desarrolladores a veces dejan archivos de respaldo en el servidor. Busca archivos .bak u otros backups que no deberían estar expuestos.',
+        solves: 55,
+        author: 'EclipSec',
+        connection: {
+            type: 'web',
+            host: CTF_SERVER.host,
+            port: 8009,
+            ...railwayChallenge('web-009'),
+        },
+        flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{b4ckup_f1l3s_4r3_l34ks}',
+        hints: ['¿Qué extensiones usan los archivos de respaldo?', 'Prueba con index.py.bak'],
+        active: true,
+    },
+
+    // ── web-010: Headers Matter ─────────────────────────────────
+    {
+        id: 'web-010',
+        title: 'Reto 10: Headers Matter',
+        category: 'WEB',
+        difficulty: 'MEDIUM',
+        points: 300,
+        description: 'El servidor solo permite acceso desde un navegador específico y una IP local. Manipula las cabeceras HTTP para pasar los controles de seguridad.',
+        solves: 30,
+        author: 'EclipSec',
+        connection: {
+            type: 'web',
+            host: CTF_SERVER.host,
+            port: 8010,
+            ...railwayChallenge('web-010'),
+        },
+        flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{h34d3rs_c4n_b3_sp00f3d}',
+        hints: [
+            'Necesitas modificar dos cabeceras HTTP.',
+            'User-Agent: SecureBrowser1.0 y X-Forwarded-For: 127.0.0.1',
         ],
         active: true,
     },
@@ -326,14 +330,15 @@ export const challenges: Challenge[] = [
             ...railwayChallenge('web-011'),
         },
         flagFormat: 'EclipSec{...}',
+        flag: 'EclipSec{c0mm4nd_3x3cut10n_v1a_g3t}',
         hints: [
             'La página dice: Usage: ?cmd=whoami',
-            'Intenta ?cmd=cat /flag_web011.txt',
+            'Intenta ?cmd=cat /flag.txt',
         ],
         active: true,
     },
 ];
 
 export const sortedChallenges = [...challenges].sort(
-    (a, b) => DIFFICULTY_ORDER[a.difficulty] - DIFFICULTY_ORDER[b.difficulty]
+    (a, b) => a.id.localeCompare(b.id)
 );
