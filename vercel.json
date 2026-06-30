@@ -1,4 +1,9 @@
 {
+    "functions": {
+        "api/ctf-academy.ts": {
+            "maxDuration": 10
+        }
+    },
     "rewrites": [
         {
             "source": "/api/(.*)",
