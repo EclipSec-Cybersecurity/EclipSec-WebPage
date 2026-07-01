@@ -645,6 +645,24 @@ const CTFChallengeLab = () => {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+
+                            {completed && (() => {
+                                const currentIndex = sortedChallenges.findIndex(c => c.id === challenge.id);
+                                const nextChallenge = sortedChallenges[currentIndex + 1];
+                                if (nextChallenge) {
+                                    return (
+                                        <div className="mt-3">
+                                            <Link
+                                                to={`${NAV_ROUTES.ctfChallenges}/${nextChallenge.id}`}
+                                                className="group relative w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest bg-[#00ff41]/10 text-[#00ff41] border border-[#00ff41]/30 hover:bg-[#00ff41]/20 transition-all shadow-[0_0_15px_rgba(0,255,65,0.1)]"
+                                            >
+                                                Siguiente Nivel <ChevronRight className="w-4 h-4" />
+                                            </Link>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
                         </div>
 
                         {/* Hints Card */}
