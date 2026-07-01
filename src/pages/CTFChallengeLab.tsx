@@ -287,7 +287,7 @@ const CTFChallengeLab = () => {
 
                     <div className="flex flex-col gap-3">
                         <Link
-                            to={`${NAV_ROUTES.ctfChallenges}/${lockedBy.id}`}
+                            to={`${NAV_ROUTES.challengeLab}/${lockedBy.id}`}
                             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg font-bold text-sm border-2 border-yellow-500 bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20 transition-all"
                         >
                             <ChevronRight className="w-4 h-4" />
@@ -653,7 +653,7 @@ const CTFChallengeLab = () => {
                                     return (
                                         <div className="mt-3">
                                             <Link
-                                                to={`${NAV_ROUTES.ctfChallenges}/${nextChallenge.id}`}
+                                                to={`${NAV_ROUTES.challengeLab}/${nextChallenge.id}`}
                                                 className="group relative w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest bg-[#00ff41]/10 text-[#00ff41] border border-[#00ff41]/30 hover:bg-[#00ff41]/20 transition-all shadow-[0_0_15px_rgba(0,255,65,0.1)]"
                                             >
                                                 Siguiente Nivel <ChevronRight className="w-4 h-4" />
