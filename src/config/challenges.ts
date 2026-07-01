@@ -334,6 +334,8 @@ export const challenges: Challenge[] = [
         hints: [
             'La página dice: Usage: ?cmd=whoami',
             'Intenta ?cmd=cat /flag.txt',
+            'Podés usar herramientas como curl o Burp Suite para enviar el parámetro desde la terminal.',
+            'Antes de leer la flag, explorá el sistema: intenta ?cmd=ls / para ver qué archivos hay.',
         ],
         active: true,
     },
