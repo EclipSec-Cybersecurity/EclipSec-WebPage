@@ -117,6 +117,7 @@ const CTFChallengeLab = () => {
     const navigate = useNavigate();
 
     const [challenge, setChallenge] = useState<Challenge | null>(null);
+    const [lockedBy, setLockedBy] = useState<Challenge | null>(null);  // challenge that must be solved first
     const [connState, setConnState] = useState<'connecting' | 'connected' | 'error'>('connecting');
     const [viewMode, setViewMode] = useState<ViewMode>('split');
     const [flagInput, setFlagInput] = useState('');
@@ -127,7 +128,6 @@ const CTFChallengeLab = () => {
     const [showHints, setShowHints] = useState(false);
     const [revealedHints, setRevealedHints] = useState<number[]>([]);
     const [termKey, setTermKey] = useState(0);   // fuerza re-mount al reconectar
-    // iframeRef moved into WebChallengePanel
 
     /* ── Force dark CTF styles ──────────────────────────────────── */
     useEffect(() => {
@@ -149,13 +149,24 @@ const CTFChallengeLab = () => {
 
             const academyState = await getAcademyState();
             const user = academyState.currentUser;
-            const challengeIds = sortedChallenges.map(item => item.id);
 
             if (!mounted) return;
 
             setCurrentUser(user);
-            if (!user || !canAccessChallenge(user, found.id, challengeIds)) {
+
+            // No session → redirect to challenge list (not logged in)
+            if (!user) {
                 navigate(NAV_ROUTES.ctfChallenges, { replace: true });
+                return;
+            }
+
+            // Logged in but previous challenge not completed → show locked screen
+            const challengeIds = sortedChallenges.map(item => item.id);
+            if (!canAccessChallenge(user, found.id, challengeIds)) {
+                const blockerIndex = challengeIds.indexOf(found.id) - 1;
+                const blocker = blockerIndex >= 0 ? challenges.find(c => c.id === challengeIds[blockerIndex]) ?? null : null;
+                setLockedBy(blocker);
+                setChallenge(found);
                 return;
             }
 
@@ -239,6 +250,61 @@ const CTFChallengeLab = () => {
             setFlagMessage('');
         }, 3000);
     };
+
+    /* ── Locked screen ──────────────────────────────────────────── */
+    if (challenge && lockedBy) {
+        return (
+            <div className="min-h-screen bg-[#050505] flex items-center justify-center font-mono text-[#00ff41] p-6">
+                <div className="fixed inset-0 z-0 opacity-[0.035] pointer-events-none"
+                    style={{ backgroundImage: 'linear-gradient(#00ff41 1px,transparent 1px),linear-gradient(90deg,#00ff41 1px,transparent 1px)', backgroundSize: '30px 30px' }} />
+
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="relative z-10 max-w-md w-full border border-red-500/40 bg-black/80 rounded-2xl p-8 text-center shadow-[0_0_40px_rgba(255,68,68,0.15)]"
+                >
+                    {/* Lock icon */}
+                    <div className="flex justify-center mb-6">
+                        <div className="p-4 rounded-full border-2 border-red-500/50 bg-red-500/10">
+                            <Lock className="w-10 h-10 text-red-400" />
+                        </div>
+                    </div>
+
+                    <h1 className="text-xl font-bold text-red-400 mb-2 tracking-widest uppercase">
+                        Acceso Bloqueado
+                    </h1>
+                    <p className="text-[#00ff41]/50 text-sm mb-6 leading-relaxed">
+                        Debes completar el reto anterior antes de poder acceder a
+                        <span className="text-[#00ff41] font-bold"> {challenge.title}</span>.
+                    </p>
+
+                    {/* Blocker challenge card */}
+                    <div className="border border-yellow-500/30 bg-yellow-500/5 rounded-xl p-4 mb-6 text-left">
+                        <p className="text-[10px] text-yellow-400/60 uppercase tracking-widest mb-1">Reto pendiente</p>
+                        <p className="text-yellow-300 font-bold text-sm">{lockedBy.title}</p>
+                        <p className="text-[#00ff41]/40 text-xs mt-1">{lockedBy.difficulty} · {lockedBy.points} pts</p>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                        <Link
+                            to={`${NAV_ROUTES.ctfChallenges}/${lockedBy.id}`}
+                            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg font-bold text-sm border-2 border-yellow-500 bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20 transition-all"
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                            Ir al reto pendiente
+                        </Link>
+                        <Link
+                            to={NAV_ROUTES.ctfChallenges}
+                            className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-sm border border-[#00ff41]/20 text-[#00ff41]/60 hover:text-[#00ff41] hover:bg-[#00ff41]/5 transition-all"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Volver a los retos
+                        </Link>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    }
 
     /* ── Loading state ──────────────────────────────────────────── */
     if (!challenge) {
