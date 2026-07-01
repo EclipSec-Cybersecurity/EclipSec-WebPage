@@ -284,7 +284,7 @@ export const challenges: Challenge[] = [
         },
         flagFormat: 'EclipSec{...}',
         flag: 'EclipSec{b4ckup_f1l3s_4r3_l34ks}',
-        hints: ['¿Qué extensiones usan los archivos de respaldo?', 'Prueba con index.py.bak'],
+        hints: ['¿Qué extensiones usan los archivos de respaldo?', 'Prueba con index.bak'],
         active: true,
     },
 
