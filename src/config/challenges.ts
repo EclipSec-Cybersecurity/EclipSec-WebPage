@@ -308,7 +308,9 @@ export const challenges: Challenge[] = [
         flag: 'EclipSec{h34d3rs_c4n_b3_sp00f3d}',
         hints: [
             'Necesitas modificar dos cabeceras HTTP.',
-            'User-Agent: SecureBrowser1.0 y X-Forwarded-For: 127.0.0.1',
+            'Para cambiar tu navegador, necesitás modificar el User-Agent a SecureBrowser1.0',
+            'Para falsificar tu IP y parecer local, agregá la cabecera X-Forwarded-For: 127.0.0.1',
+            'Podés inyectar cabeceras con extensiones como ModHeader, o usando curl/Burp Suite.',
         ],
         active: true,
     },
