@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Tag, Sparkles } from 'lucide-react';
+import { Tag, Sparkles, Code, ShieldAlert, Swords, GraduationCap } from 'lucide-react';
 import { NAV_ROUTES } from '../config/site';
 
 const Home = () => {
@@ -64,37 +64,121 @@ const Home = () => {
 
             </section>
 
-            {/* Advertising Feed Card */}
+            {/* Advertising Feed Cards */}
             <section className="relative z-10 container mx-auto px-4 pb-16">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5 }}
-                    className="max-w-4xl mx-auto rounded-xl border border-primary/20 bg-gradient-to-r from-surface/80 to-surface/40 backdrop-blur-md p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_0_30px_rgba(211,47,47,0.1)] relative overflow-hidden"
-                >
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2 text-primary font-bold text-sm tracking-wider uppercase">
-                            <Sparkles className="w-4 h-4" />
-                            <span>Servicios Destacados</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                    {/* Software Dev */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5 }}
+                        className="rounded-xl border border-primary/20 bg-gradient-to-br from-surface/80 to-surface/40 backdrop-blur-md p-6 flex flex-col gap-4 shadow-[0_0_30px_rgba(211,47,47,0.1)] relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs tracking-wider uppercase">
+                                <Code className="w-4 h-4" />
+                                <span>Desarrollo de Software</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-heading mb-2 leading-tight">
+                                ¿Necesitas automatizar tus sistemas? ¡Nosotros lo hacemos!
+                            </h3>
                         </div>
-                        <h3 className="text-xl md:text-2xl font-bold text-heading mb-2">
-                            ¿Necesitas automatizar tus sistemas? ¡Nosotros lo hacemos!
-                        </h3>
-                        <p className="text-text-muted text-sm md:text-base">
-                            Optimizamos tus procesos y garantizamos la seguridad de tu infraestructura. Soluciones a medida para potenciar tu negocio.
-                        </p>
-                    </div>
-                    <div className="shrink-0">
-                        <Link
-                            to={NAV_ROUTES.services}
-                            className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-background bg-primary rounded hover:bg-primary-hover transition-colors shadow-[0_0_10px_rgba(211,47,47,0.3)]"
-                        >
-                            Saber más
-                        </Link>
-                    </div>
-                </motion.div>
+                        <div className="mt-auto pt-4">
+                            <Link
+                                to={`${NAV_ROUTES.services}#620900`}
+                                className="inline-flex items-center justify-center px-5 py-2 text-sm font-bold text-background bg-primary rounded hover:bg-primary-hover transition-colors shadow-[0_0_10px_rgba(211,47,47,0.3)] w-full"
+                            >
+                                Saber más
+                            </Link>
+                        </div>
+                    </motion.div>
+
+                    {/* Audit / Consulting */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        className="rounded-xl border border-primary/20 bg-gradient-to-br from-surface/80 to-surface/40 backdrop-blur-md p-6 flex flex-col gap-4 shadow-[0_0_30px_rgba(211,47,47,0.1)] relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs tracking-wider uppercase">
+                                <ShieldAlert className="w-4 h-4" />
+                                <span>Auditoría</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-heading mb-2 leading-tight">
+                                Analiza tu sistema y su seguridad de forma rápida y profesional
+                            </h3>
+                        </div>
+                        <div className="mt-auto pt-4">
+                            <Link
+                                to={`${NAV_ROUTES.services}#620200`}
+                                className="inline-flex items-center justify-center px-5 py-2 text-sm font-bold text-background bg-primary rounded hover:bg-primary-hover transition-colors shadow-[0_0_10px_rgba(211,47,47,0.3)] w-full"
+                            >
+                                Saber más
+                            </Link>
+                        </div>
+                    </motion.div>
+
+                    {/* Red Teaming */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        className="rounded-xl border border-primary/20 bg-gradient-to-br from-surface/80 to-surface/40 backdrop-blur-md p-6 flex flex-col gap-4 shadow-[0_0_30px_rgba(211,47,47,0.1)] relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs tracking-wider uppercase">
+                                <Swords className="w-4 h-4" />
+                                <span>Red Teaming</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-heading mb-2 leading-tight">
+                                Podemos poner a prueba tu página y evaluar su seguridad
+                            </h3>
+                        </div>
+                        <div className="mt-auto pt-4">
+                            <Link
+                                to={`${NAV_ROUTES.services}#620201`}
+                                className="inline-flex items-center justify-center px-5 py-2 text-sm font-bold text-background bg-primary rounded hover:bg-primary-hover transition-colors shadow-[0_0_10px_rgba(211,47,47,0.3)] w-full"
+                            >
+                                Saber más
+                            </Link>
+                        </div>
+                    </motion.div>
+
+                    {/* Tutoring / Training */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
+                        className="rounded-xl border border-primary/20 bg-gradient-to-br from-surface/80 to-surface/40 backdrop-blur-md p-6 flex flex-col gap-4 shadow-[0_0_30px_rgba(211,47,47,0.1)] relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs tracking-wider uppercase">
+                                <GraduationCap className="w-4 h-4" />
+                                <span>Capacitaciones</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-heading mb-2 leading-tight">
+                                Capacita a tus trabajadores contra el phishing y las estafas
+                            </h3>
+                        </div>
+                        <div className="mt-auto pt-4">
+                            <Link
+                                to={`${NAV_ROUTES.services}#639900`}
+                                className="inline-flex items-center justify-center px-5 py-2 text-sm font-bold text-background bg-primary rounded hover:bg-primary-hover transition-colors shadow-[0_0_10px_rgba(211,47,47,0.3)] w-full"
+                            >
+                                Saber más
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
             </section>
 
             {/* UCN Collaboration Section */}
@@ -104,7 +188,7 @@ const Home = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.7 }}
-                    className="relative rounded-2xl overflow-hidden border border-border bg-surface/40 backdrop-blur-sm"
+                    className="relative max-w-4xl mx-auto rounded-2xl overflow-hidden border border-border bg-surface/40 backdrop-blur-sm"
                 >
                     {/* Decorative glow */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>

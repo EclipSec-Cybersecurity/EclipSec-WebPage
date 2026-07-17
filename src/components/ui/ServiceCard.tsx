@@ -15,6 +15,7 @@ interface ServiceCardProps {
     badge?: string;
     quoteMessage?: string;
     quoteLabel?: string;
+    isHighlighted?: boolean;
 }
 
 const ServiceCard = ({
@@ -28,6 +29,7 @@ const ServiceCard = ({
     badge,
     quoteMessage,
     quoteLabel = 'Cotiza ahora',
+    isHighlighted = false,
 }: ServiceCardProps) => {
     const contactUrl = quoteMessage
         ? `${NAV_ROUTES.contact}?message=${encodeURIComponent(quoteMessage)}`
@@ -35,11 +37,12 @@ const ServiceCard = ({
 
     return (
         <motion.div
+            id={code}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay }}
-            className="group relative h-full"
+            className={`group relative h-full ${isHighlighted ? 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-xl' : ''}`}
         >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-xl transform group-hover:scale-105 transition-transform duration-300"></div>
 

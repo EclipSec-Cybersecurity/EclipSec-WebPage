@@ -2,9 +2,24 @@ import { useTranslation } from 'react-i18next';
 import { ShieldAlert, Code, GraduationCap, Swords } from 'lucide-react';
 import ServiceCard from '../components/ui/ServiceCard';
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const Services = () => {
     const { t } = useTranslation();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.hash) {
+            const id = location.hash.replace('#', '');
+            const element = document.getElementById(id);
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        }
+    }, [location.hash]);
 
     const services = [
         {
@@ -68,6 +83,7 @@ const Services = () => {
                         {...service}
                         quoteLabel={t('services.quoteBtn')}
                         delay={index * 0.1}
+                        isHighlighted={location.hash === `#${service.code}`}
                     />
                 ))}
             </div>
