@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Tag, Sparkles, Code, ShieldAlert, Swords, GraduationCap } from 'lucide-react';
+import { Tag, Code, ShieldAlert, Swords, GraduationCap } from 'lucide-react';
 import { NAV_ROUTES } from '../config/site';
 
 const Home = () => {
