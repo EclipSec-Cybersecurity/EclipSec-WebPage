@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Menu, X, Shield, Globe } from 'lucide-react';
+import { Menu, X, Globe } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
 import { SITE_CONFIG, NAV_ROUTES } from '../../config/site';
 
@@ -29,7 +29,6 @@ const Navbar = () => {
         { name: t('common.services'), path: NAV_ROUTES.services },
         { name: t('common.about'), path: NAV_ROUTES.about },
         { name: t('common.contact'), path: NAV_ROUTES.contact },
-        { name: t('common.ctf'), path: NAV_ROUTES.ctf },
     ];
 
     return (
@@ -39,7 +38,7 @@ const Navbar = () => {
 
                     {/* Logo */}
                     <NavLink to={NAV_ROUTES.home} className="flex items-center gap-2 group">
-                        <Shield className="w-8 h-8 text-primary group-hover:text-accent transition-colors" />
+                        <img src="/images/EclipSecLogo.png" alt="EclipSec Logo" className="w-8 h-8 transition-transform group-hover:scale-110" />
                         <span className="text-xl font-bold text-heading tracking-wide">{SITE_CONFIG.name}</span>
                     </NavLink>
 

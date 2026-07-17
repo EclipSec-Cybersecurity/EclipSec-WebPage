@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Shield, Tag } from 'lucide-react';
+import { Tag, Sparkles } from 'lucide-react';
 import { NAV_ROUTES } from '../config/site';
 
 const Home = () => {
@@ -23,7 +23,7 @@ const Home = () => {
                     transition={{ duration: 0.6 }}
                     className="mb-8"
                 >
-                    <Shield className="w-20 h-20 text-primary mx-auto opacity-90 drop-shadow-[0_0_15px_rgba(211,47,47,0.5)]" />
+                    <img src="/images/EclipSecLogo.png" alt="EclipSec Logo" className="w-24 h-24 mx-auto drop-shadow-[0_0_15px_rgba(211,47,47,0.5)]" />
                 </motion.div>
 
                 <motion.h1
@@ -62,6 +62,39 @@ const Home = () => {
                     </Link>
                 </motion.div>
 
+            </section>
+
+            {/* Advertising Feed Card */}
+            <section className="relative z-10 container mx-auto px-4 pb-16">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5 }}
+                    className="max-w-4xl mx-auto rounded-xl border border-primary/20 bg-gradient-to-r from-surface/80 to-surface/40 backdrop-blur-md p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_0_30px_rgba(211,47,47,0.1)] relative overflow-hidden"
+                >
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2 text-primary font-bold text-sm tracking-wider uppercase">
+                            <Sparkles className="w-4 h-4" />
+                            <span>Servicios Destacados</span>
+                        </div>
+                        <h3 className="text-xl md:text-2xl font-bold text-heading mb-2">
+                            ¿Necesitas automatizar tus sistemas? ¡Nosotros lo hacemos!
+                        </h3>
+                        <p className="text-text-muted text-sm md:text-base">
+                            Optimizamos tus procesos y garantizamos la seguridad de tu infraestructura. Soluciones a medida para potenciar tu negocio.
+                        </p>
+                    </div>
+                    <div className="shrink-0">
+                        <Link
+                            to={NAV_ROUTES.services}
+                            className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-background bg-primary rounded hover:bg-primary-hover transition-colors shadow-[0_0_10px_rgba(211,47,47,0.3)]"
+                        >
+                            Saber más
+                        </Link>
+                    </div>
+                </motion.div>
             </section>
 
             {/* UCN Collaboration Section */}
