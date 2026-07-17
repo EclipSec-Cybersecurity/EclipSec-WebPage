@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Tag, Code, ShieldAlert, Swords, GraduationCap } from 'lucide-react';
+import { Tag, Code, ShieldAlert, Swords, GraduationCap, LayoutTemplate } from 'lucide-react';
 import { NAV_ROUTES } from '../config/site';
 
 const Home = () => {
@@ -176,6 +176,36 @@ const Home = () => {
                             >
                                 Saber más
                             </Link>
+                        </div>
+                    </motion.div>
+
+                    {/* Landing Page - Wide Card */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.4 }}
+                        className="md:col-span-2 rounded-xl border border-primary/20 bg-gradient-to-br from-surface/80 to-surface/40 backdrop-blur-md p-6 flex flex-col gap-4 shadow-[0_0_30px_rgba(211,47,47,0.1)] relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs tracking-wider uppercase">
+                                    <LayoutTemplate className="w-4 h-4" />
+                                    <span>Landing Page</span>
+                                </div>
+                                <h3 className="text-lg font-bold text-heading mb-2 leading-tight">
+                                    ¡Crea tu página personalizada y profesional con nosotros!
+                                </h3>
+                            </div>
+                            <div className="shrink-0 w-full md:w-auto">
+                                <Link
+                                    to={`${NAV_ROUTES.services}#620901`}
+                                    className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold text-background bg-primary rounded hover:bg-primary-hover transition-colors shadow-[0_0_10px_rgba(211,47,47,0.3)] w-full"
+                                >
+                                    Saber más
+                                </Link>
+                            </div>
                         </div>
                     </motion.div>
                 </div>

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ShieldAlert, Code, GraduationCap, Swords } from 'lucide-react';
+import { ShieldAlert, Code, GraduationCap, Swords, LayoutTemplate } from 'lucide-react';
 import ServiceCard from '../components/ui/ServiceCard';
 import { motion } from 'framer-motion';
 import { useEffect } from 'react';
@@ -61,6 +61,16 @@ const Services = () => {
             price: t('services.items.tutoring.price'),
             features: t('services.items.tutoring.features', { returnObjects: true }) as string[],
             quoteMessage: t('services.items.tutoring.quoteTemplate'),
+        },
+        {
+            title: t('services.items.landing.title'),
+            description: t('services.items.landing.description'),
+            code: '620901',
+            icon: LayoutTemplate,
+            badge: t('services.items.landing.badge'),
+            price: t('services.items.landing.price'),
+            features: t('services.items.landing.features', { returnObjects: true }) as string[],
+            quoteMessage: t('services.items.landing.quoteTemplate'),
         },
     ];
 

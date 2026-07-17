@@ -129,6 +129,20 @@
                     "Cursos de CTF y hacking ético",
                     "Modalidad presencial y remota"
                 ]
+            },
+            "landing": {
+                "title": "Landing Page",
+                "badge": "Diseño",
+                "description": "Diseño y desarrollo de landing pages modernas y optimizadas para presentar tu empresa, servicio o producto de forma profesional, priorizando el rendimiento, la experiencia del usuario y las buenas prácticas de seguridad.",
+                "price": "desde $120.000 CLP",
+                "quoteTemplate": "Hola, estoy interesado/a en el servicio de Landing Page.\n\nÁrea de interés: Landing Page (620901)\n\nDetalles adicionales:\n- Objetivo del proyecto/negocio: \n- Funcionalidades requeridas: \n- Plazo estimado: \n\nQuedo atento/a a su respuesta.",
+                "features": [
+                    "Diseño responsive para computadores y dispositivos móviles",
+                    "Desarrollo front-end moderno y optimizado",
+                    "Formularios de contacto e integración con WhatsApp",
+                    "Optimización básica para SEO y velocidad de carga",
+                    "Implementación con medidas básicas de seguridad"
+                ]
             }
         }
     }
