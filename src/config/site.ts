@@ -9,9 +9,9 @@ export const SITE_CONFIG = {
     /** Legal entity name for copyright */
     legalName: 'EclipSec E.I.R.L.',
     /** Primary contact email */
-    email: 'contact.eclipsec@gmail.com',
+    email: 'contacto@eclipsec.cl',
     /** Formspree form endpoint for the contact form */
-    formspreeEndpoint: 'https://formspree.io/f/xjgknknk',
+    formspreeEndpoint: 'https://formspree.io/contacto@eclipsec.cl',
 } as const;
 
 export const SOCIAL_LINKS = {
