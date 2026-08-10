@@ -28,6 +28,8 @@
             "message_placeholder": "Descripción del proyecto o auditoría requerida...",
             "success_title": "Solicitud Recibida",
             "success_desc": "Analizaremos tu requerimiento y responderemos vía canal cifrado.",
+            "error_generic": "No pudimos enviar tu mensaje en este momento. Por favor, intenta de nuevo más tarde o escríbenos directamente a nuestro correo.",
+            "error_rate_limit": "Has alcanzado el límite. Por favor, espera {{minutes}} minutos antes de enviar otro mensaje.",
             "validation": {
                 "name_required": "El nombre es requerido",
                 "email_invalid": "Email inválido",

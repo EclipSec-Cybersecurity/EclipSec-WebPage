@@ -11,7 +11,7 @@ export const SITE_CONFIG = {
     /** Primary contact email */
     email: 'contacto@eclipsec.cl',
     /** Formspree form endpoint for the contact form */
-    formspreeEndpoint: 'https://formspree.io/contacto@eclipsec.cl',
+    formspreeEndpoint: import.meta.env.VITE_FORMSPREE_ENDPOINT || '',
 } as const;
 
 export const SOCIAL_LINKS = {

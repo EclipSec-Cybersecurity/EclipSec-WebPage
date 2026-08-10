@@ -28,7 +28,6 @@ const Navbar = () => {
     const navLinks = [
         { name: t('common.services'), path: NAV_ROUTES.services },
         { name: t('common.about'), path: NAV_ROUTES.about },
-        { name: t('common.contact'), path: NAV_ROUTES.contact },
     ];
 
     return (

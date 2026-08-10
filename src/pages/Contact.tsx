@@ -1,50 +1,16 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { Send, Mail, MapPin, Globe, ShieldCheck, Lock } from 'lucide-react';
 import { SITE_CONFIG } from '../config/site';
+import { useContactForm } from '../hooks/useContactForm';
 
 const Contact = () => {
     const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const prefilledMessage = searchParams.get('message') ?? '';
 
-    const contactSchema = z.object({
-        name: z.string().min(1, { message: t('common.form.validation.name_required') }),
-        company: z.string().optional(),
-        email: z.string().email({ message: t('common.form.validation.email_invalid') }),
-        message: z.string().min(10, { message: t('common.form.validation.message_min') }),
-    });
-
-    type ContactFormValues = z.infer<typeof contactSchema>;
-
-    const { register, handleSubmit, formState: { errors, isSubmitting, isSubmitSuccessful }, reset } = useForm<ContactFormValues>({
-        resolver: zodResolver(contactSchema),
-        defaultValues: {
-            message: prefilledMessage,
-        },
-    });
-
-    const onSubmit = async (data: ContactFormValues) => {
-        try {
-            const response = await fetch(SITE_CONFIG.formspreeEndpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (response.ok) {
-                reset();
-            }
-        } catch (error) {
-            console.error('Error submitting form:', error);
-        }
-    };
+    const { register, handleSubmit, errors, isSubmitting, isSubmitSuccessful, apiError, resetFormStatus } = useContactForm(prefilledMessage);
 
     return (
         <div className="container mx-auto px-4 py-16 md:py-24">
@@ -124,14 +90,28 @@ const Contact = () => {
                                 <h3 className="text-2xl font-bold text-heading mb-2">{t('common.form.success_title')}</h3>
                                 <p className="text-text-muted max-w-xs mx-auto">{t('common.form.success_desc')}</p>
                                 <button
-                                    onClick={() => reset()}
+                                    onClick={() => resetFormStatus()}
                                     className="mt-8 text-sm text-primary hover:text-primary-hover underline"
                                 >
                                     {t('common.form.send_another')}
                                 </button>
                             </div>
                         ) : (
-                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 relative z-10">
+                            <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
+                                {apiError && (
+                                    <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg flex items-start gap-3 text-accent">
+                                        <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
+                                        <p className="text-sm font-medium">{apiError}</p>
+                                    </div>
+                                )}
+                                {/* Honeypot field (hidden from users, visible to bots) */}
+                                <input
+                                    type="text"
+                                    {...register('_honeypot')}
+                                    style={{ display: 'none' }}
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
                                         <label htmlFor="name" className="block text-sm font-semibold text-text mb-2">

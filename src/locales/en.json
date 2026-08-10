@@ -28,6 +28,8 @@
             "message_placeholder": "Project description or audit requirements...",
             "success_title": "Request Received",
             "success_desc": "We will analyze your request and respond via encrypted channel.",
+            "error_generic": "We could not send your message at this time. Please try again later or contact us directly via email.",
+            "error_rate_limit": "You have reached the limit. Please wait {{minutes}} minutes before sending another message.",
             "validation": {
                 "name_required": "Name is required",
                 "email_invalid": "Invalid email address",
