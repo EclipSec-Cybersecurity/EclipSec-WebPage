@@ -1,3 +1,5 @@
+import { SITE_CONFIG } from '../config/site';
+
 const TOKEN_KEY = 'eclipsec.ctfAcademy.token';
 
 export const ADMIN_CREDENTIALS = {
@@ -57,7 +59,8 @@ const setToken = (token: string | null) => {
 
 const apiRequest = async <T,>(action: string, body: Record<string, unknown> = {}): Promise<ApiResult<T>> => {
     const token = getToken();
-    const response = await fetch('/api/ctf-academy', {
+    const endpoint = SITE_CONFIG.apiUrl ? `${SITE_CONFIG.apiUrl}/api/ctf-academy` : '/api/ctf-academy';
+    const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

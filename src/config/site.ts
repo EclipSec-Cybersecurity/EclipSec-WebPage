@@ -12,6 +12,8 @@ export const SITE_CONFIG = {
     email: 'contacto@eclipsec.cl',
     /** Formspree form endpoint for the contact form */
     formspreeEndpoint: import.meta.env.VITE_FORMSPREE_ENDPOINT || '',
+    /** Backend API URL (e.g. Railway) - falls back to same-origin /api if empty */
+    apiUrl: (import.meta.env.VITE_API_URL || '').replace(/\/+$/, ''),
 } as const;
 
 export const SOCIAL_LINKS = {

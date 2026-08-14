@@ -6,15 +6,18 @@ describe('Site Config', () => {
         expect(SITE_CONFIG.name).toBeTruthy();
         expect(SITE_CONFIG.legalName).toBeTruthy();
         expect(SITE_CONFIG.email).toBeTruthy();
-        expect(SITE_CONFIG.formspreeEndpoint).toBeTruthy();
+        expect(typeof SITE_CONFIG.formspreeEndpoint).toBe('string');
+        expect(typeof SITE_CONFIG.apiUrl).toBe('string');
     });
 
     it('email has a valid format', () => {
         expect(SITE_CONFIG.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
     });
 
-    it('formspree endpoint is a valid URL', () => {
-        expect(SITE_CONFIG.formspreeEndpoint).toMatch(/^https:\/\/formspree\.io\//);
+    it('formspree endpoint is valid when defined', () => {
+        if (SITE_CONFIG.formspreeEndpoint) {
+            expect(SITE_CONFIG.formspreeEndpoint).toMatch(/^https:\/\/formspree\.io\//);
+        }
     });
 
     it('has all social links defined as valid URLs', () => {

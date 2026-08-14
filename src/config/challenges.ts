@@ -57,10 +57,13 @@ export interface Challenge {
  * Railway monolítico: todos los retos están bajo un mismo dominio
  * con sub-rutas /web-001/, /web-002/, etc.
  * ───────────────────────────────────────────────────────────────── */
-const RAILWAY_DOMAIN = 'https://academiahackingucncqbo-production.up.railway.app';
+const DEFAULT_RAILWAY_DOMAIN = 'https://academiahackingucncqbo-production.up.railway.app';
+const rawDomain = import.meta.env.VITE_CTF_RAILWAY_DOMAIN || DEFAULT_RAILWAY_DOMAIN;
+const RAILWAY_DOMAIN = rawDomain.replace(/\/+$/, '');
+const hostFromDomain = RAILWAY_DOMAIN.replace(/^https?:\/\//, '').split('/')[0];
 
 export const CTF_SERVER = {
-    host: 'academiahackingucncqbo-production.up.railway.app',
+    host: hostFromDomain,
     railwayDomain: RAILWAY_DOMAIN,
 } as const;
 

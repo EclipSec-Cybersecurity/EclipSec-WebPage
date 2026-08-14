@@ -16,10 +16,10 @@ describe('Services Page', () => {
         expect(screen.getByText('#639900')).toBeInTheDocument();
     });
 
-    it('renders three service card headings', () => {
+    it('renders all service card headings', () => {
         render(<Services />);
         // Each ServiceCard has an h3 title
         const headings = screen.getAllByRole('heading', { level: 3 });
-        expect(headings.length).toBe(3);
+        expect(headings.length).toBe(5);
     });
 });

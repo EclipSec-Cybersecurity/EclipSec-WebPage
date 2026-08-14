@@ -14,6 +14,12 @@ describe('Navbar', () => {
         // Desktop + mobile nav links may result in duplicates
         const serviceLinks = screen.getAllByRole('link', { name: /servicios|services/i });
         expect(serviceLinks.length).toBeGreaterThanOrEqual(1);
+
+        const ctfLinks = screen.getAllByRole('link', { name: /ctf academy/i });
+        expect(ctfLinks.length).toBeGreaterThanOrEqual(1);
+        ctfLinks.forEach((link) => {
+            expect(link).toHaveAttribute('href', NAV_ROUTES.ctf);
+        });
     });
 
     it('renders the logo link pointing to home', () => {

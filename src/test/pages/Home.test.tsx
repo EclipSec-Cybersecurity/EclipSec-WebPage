@@ -14,7 +14,8 @@ describe('Home Page', () => {
 
     it('renders the hero subtitle', () => {
         render(<Home />);
-        expect(screen.getByText(/Pentesting|Red Teaming/i)).toBeInTheDocument();
+        const paragraphs = screen.getAllByText(/Pentesting|Red Teaming/i);
+        expect(paragraphs.length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders CTA button linking to contact', () => {
