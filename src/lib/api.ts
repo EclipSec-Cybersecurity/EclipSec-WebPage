@@ -51,12 +51,23 @@ export async function apiRequest<T>(
     ...options.headers,
   };
 
+  if (!baseUrl && typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    throw new Error(
+      'Error de configuración: La variable VITE_API_URL no está configurada en Vercel. Agrégala en Settings > Environment Variables y realiza un Redeploy.'
+    );
+  }
+
   const response = await fetch(fullUrl, {
     ...options,
     headers,
   });
 
   if (!response.ok) {
+    if (response.status === 405) {
+      throw new Error(
+        `Error 405: El servidor (${baseUrl || window.location.origin}) rechazó el método ${options.method || 'GET'}. Asegúrate de que VITE_API_URL apunte al nuevo backend de Railway.`
+      );
+    }
     const errorBody = await response.json().catch(() => ({
       detail: response.statusText || 'Error en la petición',
     }));
