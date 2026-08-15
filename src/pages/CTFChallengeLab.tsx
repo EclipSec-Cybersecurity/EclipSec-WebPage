@@ -6,7 +6,7 @@ import {
     Lock, Zap, Skull, AlertTriangle, Copy, Check,
     ExternalLink, Download, Send, WifiOff, RefreshCw,
     Lightbulb, ChevronRight, Eye,
-    SplitSquareHorizontal, Monitor
+    SplitSquareHorizontal, Monitor, CheckCircle2
 } from 'lucide-react';
 import { NAV_ROUTES } from '../config/site';
 import {
@@ -16,13 +16,11 @@ import {
     CTF_SERVER,
 } from '../config/challenges';
 import {
-    canAccessChallenge,
     completeAcademyChallenge,
     getAcademyState,
-    getNextChallengeIndex,
-    isChallengeCompleted,
-    type AcademyUser,
+    getCountryFlag,
 } from '../lib/ctfAcademy';
+import { type UserProfile } from '../services/auth';
 
 /* Lazy-load WebTerminal para no bloquear el bundle principal */
 const WebTerminal = lazy(() => import('../components/WebTerminal'));
@@ -48,18 +46,13 @@ const CAT_ICONS: Record<Category, React.ReactNode> = {
 type ViewMode = 'split' | 'terminal' | 'challenge';
 
 /* ── WebChallengePanel ──────────────────────────────────────────── */
-/** Embebe el reto en un iframe a pantalla completa.
- *  Siempre muestra el botón "Abrir en nueva pestaña" en la barra superior.
- *  Solo muestra el overlay de error si hay un fallo de red real (no X-Frame-Options,
- *  que el browser maneja silenciosamente y no se puede detectar de forma fiable).
- */
 const WebChallengePanel = ({ url, title }: { url: string; title: string }) => {
     const [loadErr, setLoadErr] = useState(false);
     const [loading, setLoading] = useState(true);
 
     return (
         <div className="absolute inset-0 flex flex-col">
-            {/* Barra superior — siempre visible */}
+            {/* Barra superior */}
             <div className="shrink-0 flex items-center justify-between px-3 py-1.5 bg-black/80 border-b border-[#00ff41]/15">
                 <div className="flex items-center gap-2 min-w-0">
                     {loading && !loadErr && (
@@ -87,14 +80,14 @@ const WebChallengePanel = ({ url, title }: { url: string; title: string }) => {
                         onError={() => { setLoading(false); setLoadErr(true); }}
                     />
                 ) : (
-                    /* Error de red real (servidor no disponible) */
+                    /* Error de red */
                     <div className="absolute inset-0 bg-[#050505] flex flex-col items-center justify-center gap-4 text-center p-8">
                         <WifiOff className="w-10 h-10 text-red-400/60" />
                         <div>
                             <p className="text-white font-bold text-sm mb-1">Servidor no disponible</p>
                             <p className="text-[#00ff41]/50 text-[11px] max-w-xs leading-relaxed">
                                 No se puede conectar a <code className="text-yellow-400">{url}</code>.
-                                Verifica que el contenedor Docker esté corriendo.
+                                Verifica que el backend y contenedor en Railway estén activos.
                             </p>
                         </div>
                         <a href={url} target="_blank" rel="noopener noreferrer"
@@ -117,13 +110,14 @@ const CTFChallengeLab = () => {
     const navigate = useNavigate();
 
     const [challenge, setChallenge] = useState<Challenge | null>(null);
-    const [lockedBy, setLockedBy] = useState<Challenge | null>(null);  // challenge that must be solved first
     const [connState, setConnState] = useState<'connecting' | 'connected' | 'error'>('connecting');
     const [viewMode, setViewMode] = useState<ViewMode>('split');
     const [flagInput, setFlagInput] = useState('');
     const [flagResult, setFlagResult] = useState<'correct' | 'wrong' | null>(null);
     const [flagMessage, setFlagMessage] = useState('');
-    const [currentUser, setCurrentUser] = useState<AcademyUser | null>(null);
+    const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [submittingFlag, setSubmittingFlag] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showHints, setShowHints] = useState(false);
     const [revealedHints, setRevealedHints] = useState<number[]>([]);
@@ -154,25 +148,23 @@ const CTFChallengeLab = () => {
 
             setCurrentUser(user);
 
-            // No session → redirect to challenge list (not logged in)
+            // If not logged in, redirect to challenge list so they can login or register
             if (!user) {
                 navigate(NAV_ROUTES.ctfChallenges, { replace: true });
                 return;
             }
 
-            // Logged in but previous challenge not completed → show locked screen
-            const challengeIds = sortedChallenges.map(item => item.id);
-            if (!canAccessChallenge(user, found.id, challengeIds)) {
-                const blockerIndex = challengeIds.indexOf(found.id) - 1;
-                const blocker = blockerIndex >= 0 ? challenges.find(c => c.id === challengeIds[blockerIndex]) ?? null : null;
-                setLockedBy(blocker);
-                setChallenge(found);
-                return;
+            // Check if user solved this challenge in the backend
+            const backendCh = academyState.challenges.find(
+                bc => bc.slug === found.id || bc.id === found.id
+            );
+            if (backendCh?.is_solved) {
+                setIsCompleted(true);
             }
 
             setChallenge(found);
 
-            // Si no tiene terminal, forzamos vista de 'challenge' para ocupar todo el ancho
+            // Si no tiene terminal, forzamos vista de 'challenge'
             if (!found.connection.wsPort && !found.connection.wsUrl) {
                 setViewMode('challenge');
             }
@@ -209,9 +201,7 @@ const CTFChallengeLab = () => {
     };
 
     const wsUrl = (ch: Challenge) => {
-        // Prefer explicit wsUrl (monolithic Railway setup)
         if (ch.connection.wsUrl) return ch.connection.wsUrl;
-        // Fallback: derive from url or host:wsPort
         if (!ch.connection.wsPort) return null;
         if (ch.connection.url) {
             try {
@@ -230,81 +220,30 @@ const CTFChallengeLab = () => {
         const input = flagInput.trim();
         if (!challenge || !input) return;
 
-        if (!currentUser || !canAccessChallenge(currentUser, challenge.id, sortedChallenges.map(item => item.id))) {
-            setFlagResult('wrong');
-            setFlagMessage('Debes resolver los niveles en orden.');
-            return;
-        }
-
+        setSubmittingFlag(true);
         const result = await completeAcademyChallenge(challenge.id, input);
-        if (result.data) {
-            setCurrentUser(result.data.currentUser);
-        }
+        setSubmittingFlag(false);
 
         setFlagResult(result.ok ? 'correct' : 'wrong');
         setFlagMessage(result.message);
-        if (result.ok) setFlagInput('');
+
+        if (result.ok) {
+            setIsCompleted(true);
+            setFlagInput('');
+            if (currentUser && result.data) {
+                setCurrentUser({
+                    ...currentUser,
+                    score: result.data.newTotalScore,
+                    solves_count: currentUser.solves_count + 1,
+                });
+            }
+        }
 
         setTimeout(() => {
             setFlagResult(null);
             setFlagMessage('');
-        }, 3000);
+        }, 4000);
     };
-
-    /* ── Locked screen ──────────────────────────────────────────── */
-    if (challenge && lockedBy) {
-        return (
-            <div className="min-h-screen bg-[#050505] flex items-center justify-center font-mono text-[#00ff41] p-6">
-                <div className="fixed inset-0 z-0 opacity-[0.035] pointer-events-none"
-                    style={{ backgroundImage: 'linear-gradient(#00ff41 1px,transparent 1px),linear-gradient(90deg,#00ff41 1px,transparent 1px)', backgroundSize: '30px 30px' }} />
-
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="relative z-10 max-w-md w-full border border-red-500/40 bg-black/80 rounded-2xl p-8 text-center shadow-[0_0_40px_rgba(255,68,68,0.15)]"
-                >
-                    {/* Lock icon */}
-                    <div className="flex justify-center mb-6">
-                        <div className="p-4 rounded-full border-2 border-red-500/50 bg-red-500/10">
-                            <Lock className="w-10 h-10 text-red-400" />
-                        </div>
-                    </div>
-
-                    <h1 className="text-xl font-bold text-red-400 mb-2 tracking-widest uppercase">
-                        Acceso Bloqueado
-                    </h1>
-                    <p className="text-[#00ff41]/50 text-sm mb-6 leading-relaxed">
-                        Debes completar el reto anterior antes de poder acceder a
-                        <span className="text-[#00ff41] font-bold"> {challenge.title}</span>.
-                    </p>
-
-                    {/* Blocker challenge card */}
-                    <div className="border border-yellow-500/30 bg-yellow-500/5 rounded-xl p-4 mb-6 text-left">
-                        <p className="text-[10px] text-yellow-400/60 uppercase tracking-widest mb-1">Reto pendiente</p>
-                        <p className="text-yellow-300 font-bold text-sm">{lockedBy.title}</p>
-                        <p className="text-[#00ff41]/40 text-xs mt-1">{lockedBy.difficulty} · {lockedBy.points} pts</p>
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                        <Link
-                            to={`${NAV_ROUTES.challengeLab}/${lockedBy.id}`}
-                            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg font-bold text-sm border-2 border-yellow-500 bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20 transition-all"
-                        >
-                            <ChevronRight className="w-4 h-4" />
-                            Ir al reto pendiente
-                        </Link>
-                        <Link
-                            to={NAV_ROUTES.ctfChallenges}
-                            className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-sm border border-[#00ff41]/20 text-[#00ff41]/60 hover:text-[#00ff41] hover:bg-[#00ff41]/5 transition-all"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Volver a los retos
-                        </Link>
-                    </div>
-                </motion.div>
-            </div>
-        );
-    }
 
     /* ── Loading state ──────────────────────────────────────────── */
     if (!challenge) {
@@ -313,7 +252,7 @@ const CTFChallengeLab = () => {
                 <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }}
                     className="flex items-center gap-3">
                     <RefreshCw className="w-5 h-5 animate-spin" />
-                    <span className="text-sm">LOADING CHALLENGE DATA...</span>
+                    <span className="text-sm">CARGANDO LABORATORIO CTF...</span>
                 </motion.div>
             </div>
         );
@@ -323,10 +262,7 @@ const CTFChallengeLab = () => {
     const hasTerminal = !!(challenge.connection.wsUrl || challenge.connection.wsPort);
     const cmd = connectionCmd(challenge);
     const ws = wsUrl(challenge);
-    const completed = isChallengeCompleted(currentUser, challenge.id);
-    const nextChallengeIndex = getNextChallengeIndex(currentUser);
 
-    /* ── Page ───────────────────────────────────────────────────── */
     return (
         <div className="min-h-screen bg-[#050505] text-[#00ff41] font-mono selection:bg-[#00ff41] selection:text-black flex flex-col">
 
@@ -378,7 +314,9 @@ const CTFChallengeLab = () => {
                     <div className="flex items-center gap-3">
                         {currentUser && (
                             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#00ff41]/20 bg-black/40 text-[10px] font-black tracking-widest text-[#00ff41]/70">
-                                {currentUser.username} // {currentUser.completedChallengeIds.length}/{challenges.length}
+                                <span>{getCountryFlag(currentUser.nationality)}</span>
+                                <span>{currentUser.username}</span>
+                                <span className="text-yellow-400">({currentUser.score} pts)</span>
                             </div>
                         )}
 
@@ -468,12 +406,12 @@ const CTFChallengeLab = () => {
                                             <div>
                                                 <h3 className="text-red-400 font-bold text-base mb-1">CONTAINER OFFLINE</h3>
                                                 <p className="text-[#00ff41]/40 text-xs max-w-sm">
-                                                    El contenedor no está disponible. Asegúrate de que Docker esté corriendo en el servidor.
+                                                    El contenedor no está disponible. Asegúrate de que el backend esté desplegado en Railway.
                                                 </p>
                                             </div>
                                             <button onClick={() => { setConnState('connecting'); setTimeout(() => setConnState(challenge.active ? 'connected' : 'error'), 1200); }}
                                                 className="flex items-center gap-2 px-4 py-2 border border-[#00ff41]/30 rounded text-xs hover:bg-[#00ff41]/10 transition-colors">
-                                                <RefreshCw className="w-3 h-3" /> RETRY
+                                                <RefreshCw className="w-3 h-3" /> REINTENTAR
                                             </button>
                                         </div>
                                     )}
@@ -533,7 +471,6 @@ const CTFChallengeLab = () => {
                                                 <div className="bg-[#00ff41]/5 border border-dashed border-[#00ff41]/20 rounded-lg p-4 text-[11px] text-[#00ff41]/60">
                                                     <p className="font-bold text-[#00ff41] mb-1">💡 Tip</p>
                                                     Usa la terminal de la derecha para conectarte directamente al contenedor.
-                                                    La terminal Linux real está embebida — ¡sin salir de esta página!
                                                 </div>
                                             )}
                                         </div>
@@ -575,12 +512,11 @@ const CTFChallengeLab = () => {
                                 <WebTerminal
                                     key={termKey}
                                     wsUrl={ws!}
-                                    height={undefined}   /* let flex take over */
+                                    height={undefined}
                                     className="flex-1"
                                 />
                             </Suspense>
 
-                            {/* Reconnect terminal */}
                             <button onClick={() => setTermKey(k => k + 1)}
                                 className="mt-2 flex items-center justify-center gap-1.5 text-[10px] text-[#00ff41]/30 hover:text-[#00ff41]/60 transition-colors py-1">
                                 <RefreshCw className="w-3 h-3" /> Reconectar terminal
@@ -604,11 +540,11 @@ const CTFChallengeLab = () => {
 
                             <div className="space-y-2 pt-4 border-t border-[#00ff41]/10 text-[10px] font-mono">
                                 {[
-                                    ['OPERATIVE', challenge.author],
+                                    ['AUTOR', challenge.author],
                                     ['SOLVES', String(challenge.solves)],
                                     ['CHLG_ID', challenge.id.toUpperCase()],
-                                    ['ACADEMY', completed ? 'COMPLETADO' : `NIVEL ${nextChallengeIndex + 1}`],
-                                    ...(challenge.flagFormat ? [['FORMAT', challenge.flagFormat]] : []),
+                                    ['ESTADO', isCompleted ? 'RESUELTO ✅' : 'PENDIENTE ⏳'],
+                                    ...(challenge.flagFormat ? [['FORMATO', challenge.flagFormat]] : []),
                                 ].map(([k, v]) => (
                                     <div key={k} className="flex justify-between items-center gap-4">
                                         <span className="text-[#00ff41]/40">{k}:</span>
@@ -621,17 +557,25 @@ const CTFChallengeLab = () => {
                         {/* Submit Card */}
                         <div className="bg-black/60 border border-[#00ff41]/30 rounded-xl p-5 shadow-[0_0_20px_rgba(0,255,65,0.05)]">
                             <h3 className="text-[#00ff41] font-black text-[10px] flex items-center gap-2 mb-4 uppercase tracking-[0.2em]">
-                                <Lock className="w-3.5 h-3.5" /> Submit_Nexus
+                                <Lock className="w-3.5 h-3.5" /> Enviar Flag
                             </h3>
                             <form onSubmit={handleFlag} className="space-y-3">
                                 <div className="relative">
-                                    <input type="text" value={flagInput} onChange={e => setFlagInput(e.target.value)}
+                                    <input
+                                        type="text"
+                                        value={flagInput}
+                                        onChange={e => setFlagInput(e.target.value)}
                                         placeholder="EclipSec{...}"
-                                        className="w-full bg-black border border-[#00ff41]/20 rounded-lg px-4 py-3 text-xs text-white font-mono placeholder:text-[#00ff41]/20 focus:outline-none focus:border-[#00ff41] focus:ring-1 focus:ring-[#00ff41]/30 transition-all" />
+                                        disabled={submittingFlag}
+                                        className="w-full bg-black border border-[#00ff41]/20 rounded-lg px-4 py-3 text-xs text-white font-mono placeholder:text-[#00ff41]/20 focus:outline-none focus:border-[#00ff41] focus:ring-1 focus:ring-[#00ff41]/30 transition-all"
+                                    />
                                 </div>
-                                <button type="submit"
-                                    className="group relative w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest bg-[#00ff41] text-black hover:bg-[#00ff41]/90 transition-all shadow-[0_0_15px_rgba(0,255,65,0.2)]">
-                                    <Send className="w-4 h-4" /> Validar Flag
+                                <button
+                                    type="submit"
+                                    disabled={submittingFlag || !flagInput.trim()}
+                                    className="group relative w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest bg-[#00ff41] text-black hover:bg-[#00ff41]/90 transition-all shadow-[0_0_15px_rgba(0,255,65,0.2)] disabled:opacity-50"
+                                >
+                                    <Send className="w-4 h-4" /> {submittingFlag ? 'VALIDANDO CON HMAC...' : 'VALIDAR FLAG'}
                                 </button>
                             </form>
                             <AnimatePresence>
@@ -641,12 +585,12 @@ const CTFChallengeLab = () => {
                                             ? 'bg-green-500/20 border-green-500/50 text-green-400'
                                             : 'bg-red-500/20 border-red-500/50 text-red-400'
                                             }`}>
-                                        {flagResult === 'correct' ? `>> ${flagMessage || 'ACCESS GRANTED'} <<` : `>> ${flagMessage || 'AUTH_FAILURE'} <<`}
+                                        {flagResult === 'correct' ? `>> ${flagMessage || 'FLAG CORRECTA'} <<` : `>> ${flagMessage || 'FLAG INCORRECTA'} <<`}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
-                            {completed && (() => {
+                            {isCompleted && (() => {
                                 const currentIndex = sortedChallenges.findIndex(c => c.id === challenge.id);
                                 const nextChallenge = sortedChallenges[currentIndex + 1];
                                 if (nextChallenge) {
@@ -661,7 +605,11 @@ const CTFChallengeLab = () => {
                                         </div>
                                     );
                                 }
-                                return null;
+                                return (
+                                    <div className="mt-3 text-center text-xs text-[#00ff41] font-bold">
+                                        <CheckCircle2 className="w-4 h-4 inline mr-1" /> ¡Has completado todos los niveles!
+                                    </div>
+                                );
                             })()}
                         </div>
 
@@ -686,7 +634,7 @@ const CTFChallengeLab = () => {
                                                     </div>
                                                     : <button key={i} onClick={() => setRevealedHints(p => [...p, i])}
                                                         className="w-full flex items-center justify-between bg-yellow-500/10 border border-dashed border-yellow-500/30 rounded-lg p-3 text-[10px] text-yellow-500 font-bold hover:bg-yellow-500/20 transition-all">
-                                                        <span>REVEAL_HINT #{i + 1}</span>
+                                                        <span>REVELAR PISTA #{i + 1}</span>
                                                         <Eye className="w-3.5 h-3.5" />
                                                     </button>
                                             ))}

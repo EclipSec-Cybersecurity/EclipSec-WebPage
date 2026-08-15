@@ -36,9 +36,10 @@ export const useContactForm = (prefilledMessage: string) => {
 
         // Client-side Rate Limiting
         const lastSubmitStr = localStorage.getItem('lastContactSubmit');
+        const now = new Date().getTime();
         if (lastSubmitStr) {
             const lastSubmit = parseInt(lastSubmitStr, 10);
-            const timePassed = Date.now() - lastSubmit;
+            const timePassed = now - lastSubmit;
             if (timePassed < RATE_LIMIT_MS) {
                 const minutesLeft = Math.ceil((RATE_LIMIT_MS - timePassed) / 60000);
                 setApiError(t('common.form.error_rate_limit', { minutes: minutesLeft }));
@@ -47,7 +48,12 @@ export const useContactForm = (prefilledMessage: string) => {
         }
 
         try {
-            const { _honeypot, ...submitData } = data;
+            const submitData = {
+                name: data.name,
+                company: data.company,
+                email: data.email,
+                message: data.message,
+            };
 
             if (!SITE_CONFIG.formspreeEndpoint) {
                  setApiError(t('common.form.error_generic'));
@@ -64,13 +70,13 @@ export const useContactForm = (prefilledMessage: string) => {
             });
 
             if (response.ok) {
-                localStorage.setItem('lastContactSubmit', Date.now().toString());
+                localStorage.setItem('lastContactSubmit', new Date().getTime().toString());
                 setIsSubmitSuccessful(true);
                 reset();
             } else {
                 setApiError(t('common.form.error_generic'));
             }
-        } catch (error) {
+        } catch {
             setApiError(t('common.form.error_generic'));
         }
     };
