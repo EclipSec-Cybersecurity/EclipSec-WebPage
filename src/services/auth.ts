@@ -1,98 +1,127 @@
-import { apiRequest, setAuthToken, removeAuthData, getAuthToken } from '../lib/api';
+import { ctfAction, setAuthToken, removeAuthData, getAuthToken, type CtfResponse } from '../lib/api';
 
-export interface UserProfile {
-  id: string;
+// ─── Types that match the actual server.js response ─────────────────────────
+
+export interface CtfUser {
   username: string;
-  email: string;
-  nationality: string; // e.g. "CL", "AR", "PE", "US"
-  role: 'user' | 'admin';
-  score: number;
-  created_at: string;        // Account creation ISO date
-  last_connected_at: string; // Live telemetry updated on every request
-  is_active: boolean;
-  solves_count: number;
+  createdAt: number;        // Unix ms timestamp
+  startedAt: number;        // Unix ms timestamp (when competition started)
+  completedChallengeIds: string[];
+  completionTimes: Record<string, number>;
+  completedAt?: number;     // Unix ms timestamp, only set when all challenges done
 }
 
-export interface AuthResponse {
-  access_token: string;
-  token_type: string;
-  user: UserProfile;
-}
-
-const USER_STORAGE_KEY = 'eclipsec_user';
-
-/**
- * Register a new CTF operator
- */
-export async function register(data: {
+export interface CtfLeaderboardEntry {
   username: string;
-  email: string;
-  password: string;
-  nationality: string;
-}): Promise<UserProfile> {
-  return apiRequest<UserProfile>('/api/v1/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+  durationMs: number;
+  completedAt: number;
 }
 
-/**
- * Log in an existing CTF operator using username or email
- */
-export async function login(credentials: {
-  username_or_email: string;
-  password: string;
-}): Promise<AuthResponse> {
-  const data = await apiRequest<AuthResponse>('/api/v1/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(credentials),
-  });
-
-  if (data.access_token) {
-    setAuthToken(data.access_token);
-    if (typeof window !== 'undefined' && data.user) {
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
-    }
-  }
-
-  return data;
+export interface CtfAcademyData {
+  session: { username: string; role: 'player' | 'admin' } | null;
+  currentUser: CtfUser | null;
+  leaderboard: CtfLeaderboardEntry[];
+  participants: number;
 }
 
-/**
- * Fetch current authenticated user profile and refresh live telemetry (last_connected_at)
- */
-export async function getMe(): Promise<UserProfile> {
-  const user = await apiRequest<UserProfile>('/api/v1/auth/me');
-  if (typeof window !== 'undefined' && user) {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-  }
-  return user;
-}
+const USER_STORAGE_KEY = 'eclipsec_ctf_user';
 
-/**
- * Log out and clear all stored credentials and user telemetry
- */
-export function logout(): void {
-  removeAuthData();
-}
+// ─── Storage helpers ─────────────────────────────────────────────────────────
 
-/**
- * Retrieve cached user profile from local storage if available
- */
-export function getStoredUser(): UserProfile | null {
+export function getStoredUser(): CtfUser | null {
   if (typeof window === 'undefined') return null;
   const raw = localStorage.getItem(USER_STORAGE_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as UserProfile;
+    return JSON.parse(raw) as CtfUser;
   } catch {
     return null;
   }
 }
 
-/**
- * Check if a token is present in storage
- */
+function storeUser(user: CtfUser | null): void {
+  if (typeof window === 'undefined') return;
+  if (user) {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(USER_STORAGE_KEY);
+  }
+}
+
 export function isLoggedIn(): boolean {
   return Boolean(getAuthToken());
+}
+
+// ─── Auth actions ─────────────────────────────────────────────────────────────
+
+/**
+ * Login an existing user.
+ * On success, persists the bearer token and user data locally.
+ */
+export async function login(credentials: {
+  username: string;
+  password: string;
+}): Promise<CtfResponse<CtfAcademyData>> {
+  const result = await ctfAction<CtfAcademyData>('login', {
+    username: credentials.username,
+    password: credentials.password,
+  });
+
+  if (result.token) {
+    setAuthToken(result.token);
+  }
+  if (result.data?.currentUser) {
+    storeUser(result.data.currentUser);
+  }
+
+  return result;
+}
+
+/**
+ * Register a new user.
+ * On success, the backend creates the account and automatically logs them in.
+ */
+export async function register(credentials: {
+  username: string;
+  password: string;
+}): Promise<CtfResponse<CtfAcademyData>> {
+  const result = await ctfAction<CtfAcademyData>('register', {
+    username: credentials.username,
+    password: credentials.password,
+  });
+
+  if (result.token) {
+    setAuthToken(result.token);
+  }
+  if (result.data?.currentUser) {
+    storeUser(result.data.currentUser);
+  }
+
+  return result;
+}
+
+/**
+ * Log out the current session.
+ * Clears the token from the backend and removes local storage.
+ */
+export async function logout(): Promise<void> {
+  try {
+    await ctfAction('logout');
+  } catch {
+    // Even if the backend call fails, clear local state
+  } finally {
+    removeAuthData();
+    storeUser(null);
+  }
+}
+
+/**
+ * Fetch the current academy state (session, user, leaderboard, participants).
+ */
+export async function getState(): Promise<CtfAcademyData> {
+  const result = await ctfAction<CtfAcademyData>('state');
+  if (result.data?.currentUser) {
+    storeUser(result.data.currentUser);
+  }
+  return result.data ?? { session: null, currentUser: null, leaderboard: [], participants: 0 };
 }

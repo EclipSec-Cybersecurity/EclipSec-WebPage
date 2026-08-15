@@ -28,6 +28,5 @@ export const NAV_ROUTES = {
     about: '/nosotros',
     contact: '/contacto',
     ctf: '/ctf',
-    ctfChallenges: '/ctf/challenges',
-    challengeLab: '/ctf/challenge', // + /:challengeId
+    ctfDashboard: '/ctf/dashboard',
 } as const;

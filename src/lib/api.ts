@@ -24,7 +24,6 @@ export const removeAuthData = (): void => {
 };
 
 export function getApiBaseUrl(): string {
-  // Check configured API URL or standard environment variables
   const envUrl =
     SITE_CONFIG.apiUrl ||
     (typeof import.meta !== 'undefined' && import.meta.env
@@ -51,34 +50,64 @@ export async function apiRequest<T>(
     ...options.headers,
   };
 
-  if (!baseUrl && typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    throw new Error(
-      'Error de configuración: La variable VITE_API_URL no está configurada en Vercel. Agrégala en Settings > Environment Variables y realiza un Redeploy.'
-    );
-  }
-
   const response = await fetch(fullUrl, {
     ...options,
     headers,
   });
 
   if (!response.ok) {
-    if (response.status === 405) {
-      throw new Error(
-        `Error 405: El servidor (${baseUrl || window.location.origin}) rechazó el método ${options.method || 'GET'}. Asegúrate de que VITE_API_URL apunte al nuevo backend de Railway.`
-      );
-    }
     const errorBody = await response.json().catch(() => ({
-      detail: response.statusText || 'Error en la petición',
+      message: response.statusText || 'Error en la petición',
     }));
-    const message = errorBody.detail || errorBody.message || `Error HTTP ${response.status}`;
+    const message = errorBody.message || errorBody.detail || `Error HTTP ${response.status}`;
     throw new Error(message);
   }
 
-  // Handle 204 No Content
   if (response.status === 204) {
     return {} as T;
   }
 
   return response.json() as Promise<T>;
+}
+
+/** Backend CTF response envelope */
+export interface CtfResponse<T = unknown> {
+  ok: boolean;
+  message: string;
+  token?: string;
+  data?: T;
+}
+
+/**
+ * Single-endpoint wrapper for POST /api/ctf-academy.
+ * All CTF backend actions go through here.
+ */
+export async function ctfAction<T = unknown>(
+  action: string,
+  payload: Record<string, unknown> = {}
+): Promise<CtfResponse<T>> {
+  const baseUrl = getApiBaseUrl();
+  const token = getAuthToken();
+
+  const url = baseUrl ? `${baseUrl}/api/ctf-academy` : '/api/ctf-academy';
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ action, ...payload }),
+  });
+
+  // The CTF backend returns JSON even on error (ok: false)
+  const json: CtfResponse<T> = await response.json();
+
+  if (!response.ok && !json.ok) {
+    throw new Error(json.message || `Error HTTP ${response.status}`);
+  }
+
+  return json;
 }

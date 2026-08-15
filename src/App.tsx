@@ -5,8 +5,7 @@ import Services from './pages/Services';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import CTF from './pages/CTF';
-import CTFChallenges from './pages/CTFChallenges';
-import CTFChallengeLab from './pages/CTFChallengeLab';
+import CTFDashboard from './pages/CTFDashboard';
 
 function App() {
   return (
@@ -14,8 +13,7 @@ function App() {
         <Routes>
           {/* CTF section - independent layout */}
           <Route path="/ctf" element={<CTF />} />
-          <Route path="/ctf/challenges" element={<CTFChallenges />} />
-          <Route path="/ctf/challenge/:challengeId" element={<CTFChallengeLab />} />
+          <Route path="/ctf/dashboard" element={<CTFDashboard />} />
 
           {/* Company site pages with shared layout */}
           <Route path="/" element={<Layout />}>

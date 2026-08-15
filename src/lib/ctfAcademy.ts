@@ -1,19 +1,19 @@
 import {
-  type UserProfile,
-  getMe,
   login,
   register,
   logout,
+  getState,
   getStoredUser,
-  isLoggedIn
+  isLoggedIn,
+  type CtfUser,
+  type CtfLeaderboardEntry,
+  type CtfAcademyData,
 } from '../services/auth';
-import { getLeaderboard, type LeaderboardEntry } from '../services/leaderboard';
-import { getChallenges, type BackendChallenge, submitFlag } from '../services/challenges';
+import type { CtfResponse } from '../lib/api';
 
-export const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'EclipSecAdmin2026!',
-} as const;
+export type { CtfUser, CtfLeaderboardEntry, CtfAcademyData };
+
+// ─── Country helpers (UI only) ────────────────────────────────────────────────
 
 export interface CountryInfo {
   code: string;
@@ -40,14 +40,12 @@ export const COUNTRY_LIST: CountryInfo[] = [
 export const getCountryFlag = (code?: string): string => {
   if (!code) return '🇨🇱';
   const upper = code.toUpperCase();
-  const match = COUNTRY_LIST.find(c => c.code === upper);
+  const match = COUNTRY_LIST.find((c) => c.code === upper);
   if (match) return match.flag;
 
   if (upper.length === 2) {
     try {
-      const codePoints = upper
-        .split('')
-        .map(char => 127397 + char.charCodeAt(0));
+      const codePoints = upper.split('').map((char) => 127397 + char.charCodeAt(0));
       return String.fromCodePoint(...codePoints);
     } catch {
       return '🌐';
@@ -56,12 +54,7 @@ export const getCountryFlag = (code?: string): string => {
   return '🌐';
 };
 
-export interface AcademyState {
-  currentUser: UserProfile | null;
-  leaderboard: LeaderboardEntry[];
-  participants: number;
-  challenges: BackendChallenge[];
-}
+// ─── Operation result wrapper ─────────────────────────────────────────────────
 
 export interface ApiOperationResult<T = unknown> {
   ok: boolean;
@@ -69,77 +62,37 @@ export interface ApiOperationResult<T = unknown> {
   data?: T;
 }
 
-/**
- * Fetch synchronized state from Railway CTF backend
- */
-export const getAcademyState = async (): Promise<AcademyState> => {
-  let currentUser: UserProfile | null = null;
+// ─── Academy actions ──────────────────────────────────────────────────────────
 
-  if (isLoggedIn()) {
-    try {
-      currentUser = await getMe();
-    } catch {
-      // Token might be expired or backend unreachable; try cached user
-      currentUser = getStoredUser();
-    }
+export const getAcademyState = async (): Promise<CtfAcademyData> => {
+  if (!isLoggedIn()) {
+    return { session: null, currentUser: null, leaderboard: [], participants: 0 };
   }
 
-  let leaderboard: LeaderboardEntry[] = [];
-  let participants = 0;
   try {
-    const lbData = await getLeaderboard(50);
-    leaderboard = lbData.leaderboard || [];
-    participants = lbData.total_players || leaderboard.length;
+    return await getState();
   } catch {
-    // If backend is not reached yet
-    leaderboard = [];
-    participants = 0;
-  }
-
-  let backendChallenges: BackendChallenge[] = [];
-  try {
-    backendChallenges = await getChallenges();
-  } catch {
-    backendChallenges = [];
-  }
-
-  return {
-    currentUser,
-    leaderboard,
-    participants,
-    challenges: backendChallenges,
-  };
-};
-
-export const registerAcademyUser = async (data: {
-  username: string;
-  email: string;
-  password: string;
-  nationality: string;
-}): Promise<ApiOperationResult<UserProfile>> => {
-  try {
-    const profile = await register(data);
+    // Backend unreachable — return cached user if available
+    const cached = getStoredUser();
     return {
-      ok: true,
-      message: 'Registro completado con éxito. Ya puedes iniciar sesión con tu cuenta.',
-      data: profile,
+      session: cached ? { username: cached.username, role: 'player' } : null,
+      currentUser: cached,
+      leaderboard: [],
+      participants: 0,
     };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Error en el registro';
-    return { ok: false, message };
   }
 };
 
 export const loginAcademyUser = async (credentials: {
-  username_or_email: string;
+  username: string;
   password: string;
-}): Promise<ApiOperationResult<UserProfile>> => {
+}): Promise<ApiOperationResult<CtfAcademyData>> => {
   try {
-    const auth = await login(credentials);
+    const result: CtfResponse<CtfAcademyData> = await login(credentials);
     return {
       ok: true,
-      message: `Bienvenido, ${auth.user.username}. Sesión iniciada.`,
-      data: auth.user,
+      message: result.message || `Bienvenido, ${credentials.username}. Sesión iniciada.`,
+      data: result.data,
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Error al iniciar sesión';
@@ -147,35 +100,28 @@ export const loginAcademyUser = async (credentials: {
   }
 };
 
-export const logoutAcademy = async (): Promise<void> => {
-  logout();
-};
-
-export const completeAcademyChallenge = async (
-  slug: string,
-  flag: string
-): Promise<ApiOperationResult<{ pointsAwarded: number; newTotalScore: number }>> => {
+export const registerAcademyUser = async (credentials: {
+  username: string;
+  password: string;
+}): Promise<ApiOperationResult<CtfAcademyData>> => {
   try {
-    const result = await submitFlag(slug, flag);
-    if (result.is_correct) {
-      return {
-        ok: true,
-        message: result.message || `¡Flag correcta! +${result.points_awarded} PTS`,
-        data: {
-          pointsAwarded: result.points_awarded,
-          newTotalScore: result.new_total_score,
-        },
-      };
-    }
+    const result: CtfResponse<CtfAcademyData> = await register(credentials);
     return {
-      ok: false,
-      message: result.message || 'Flag incorrecta. Inténtalo de nuevo.',
+      ok: true,
+      message: result.message || 'Registro exitoso. Bienvenido al CTF.',
+      data: result.data,
     };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Error al enviar flag';
+    const message = err instanceof Error ? err.message : 'Error en el registro';
     return { ok: false, message };
   }
 };
+
+export const logoutAcademy = async (): Promise<void> => {
+  await logout();
+};
+
+// ─── Formatting helpers ───────────────────────────────────────────────────────
 
 export const formatDuration = (durationMs: number): string => {
   const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
@@ -186,4 +132,14 @@ export const formatDuration = (durationMs: number): string => {
   if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
   if (minutes > 0) return `${minutes}m ${seconds}s`;
   return `${seconds}s`;
+};
+
+export const formatDate = (timestampMs: number): string => {
+  return new Date(timestampMs).toLocaleDateString('es-CL', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
