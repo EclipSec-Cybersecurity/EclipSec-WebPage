@@ -1,32 +1,38 @@
 import { ctfAction, setAuthToken, removeAuthData, getAuthToken, type CtfResponse } from '../lib/api';
 
-// ─── Types that match the actual server.js response ─────────────────────────
-
 export interface CtfUser {
+  id: string;
   username: string;
-  createdAt: number;        // Unix ms timestamp
-  startedAt: number;        // Unix ms timestamp (when competition started)
-  completedChallengeIds: string[];
-  completionTimes: Record<string, number>;
-  completedAt?: number;     // Unix ms timestamp, only set when all challenges done
+  email: string;
+  nationality: string;
+  score: number;
+  role: string;
+  solves_count: number;
+  last_connected_at: string;
+  createdAt?: number;
+  startedAt?: number;
+  completedChallengeIds?: string[];
+  completionTimes?: Record<string, number>;
+  description?: string;
 }
 
 export interface CtfLeaderboardEntry {
   username: string;
   durationMs: number;
   completedAt: number;
+  score: number;
+  nationality: string;
 }
 
 export interface CtfAcademyData {
-  session: { username: string; role: 'player' | 'admin' } | null;
+  session: { username: string; role: string } | null;
   currentUser: CtfUser | null;
   leaderboard: CtfLeaderboardEntry[];
   participants: number;
+  challenges: any[];
 }
 
 const USER_STORAGE_KEY = 'eclipsec_ctf_user';
-
-// ─── Storage helpers ─────────────────────────────────────────────────────────
 
 export function getStoredUser(): CtfUser | null {
   if (typeof window === 'undefined') return null;
@@ -52,12 +58,6 @@ export function isLoggedIn(): boolean {
   return Boolean(getAuthToken());
 }
 
-// ─── Auth actions ─────────────────────────────────────────────────────────────
-
-/**
- * Login an existing user.
- * On success, persists the bearer token and user data locally.
- */
 export async function login(credentials: {
   username: string;
   password: string;
@@ -77,18 +77,13 @@ export async function login(credentials: {
   return result;
 }
 
-/**
- * Register a new user.
- * On success, the backend creates the account and automatically logs them in.
- */
 export async function register(credentials: {
   username: string;
+  email?: string;
+  nationality?: string;
   password: string;
 }): Promise<CtfResponse<CtfAcademyData>> {
-  const result = await ctfAction<CtfAcademyData>('register', {
-    username: credentials.username,
-    password: credentials.password,
-  });
+  const result = await ctfAction<CtfAcademyData>('register', credentials);
 
   if (result.token) {
     setAuthToken(result.token);
@@ -100,28 +95,39 @@ export async function register(credentials: {
   return result;
 }
 
-/**
- * Log out the current session.
- * Clears the token from the backend and removes local storage.
- */
 export async function logout(): Promise<void> {
   try {
     await ctfAction('logout');
-  } catch {
-    // Even if the backend call fails, clear local state
-  } finally {
+  } catch {}
+  finally {
     removeAuthData();
     storeUser(null);
   }
 }
 
-/**
- * Fetch the current academy state (session, user, leaderboard, participants).
- */
 export async function getState(): Promise<CtfAcademyData> {
   const result = await ctfAction<CtfAcademyData>('state');
   if (result.data?.currentUser) {
     storeUser(result.data.currentUser);
   }
-  return result.data ?? { session: null, currentUser: null, leaderboard: [], participants: 0 };
+  return result.data ?? { session: null, currentUser: null, leaderboard: [], participants: 0, challenges: [] };
+}
+export async function updateProfile(description: string): Promise<CtfResponse<CtfAcademyData>> {
+  const result = await ctfAction<CtfAcademyData>('update_profile', { description });
+  if (result.data?.currentUser) {
+    storeUser(result.data.currentUser);
+  }
+  return result;
+}
+
+export async function generateAdminToken(): Promise<CtfResponse<{token: string}>> {
+  return await ctfAction<{token: string}>('generate_admin_token');
+}
+
+export async function redeemAdminToken(token: string): Promise<CtfResponse<CtfAcademyData>> {
+  const result = await ctfAction<CtfAcademyData>('redeem_admin_token', { token });
+  if (result.data?.currentUser) {
+    storeUser(result.data.currentUser);
+  }
+  return result;
 }
