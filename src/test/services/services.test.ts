@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { register, login, getMe, logout, getStoredUser, isLoggedIn } from '../../services/auth';
+import { register, login, logout, getStoredUser, isLoggedIn, getUserProfile } from '../../services/auth';
 import { getChallenges, submitFlag } from '../../services/challenges';
 import { getLeaderboard, getCountryStats } from '../../services/leaderboard';
 
@@ -13,57 +13,59 @@ describe('Auth Service (src/services/auth.ts)', () => {
     localStorage.clear();
   });
 
-  it('performs registration successfully', async () => {
-    const mockUser = {
-      id: 'usr-1',
-      username: 'hacker1',
-      email: 'hacker1@ucn.cl',
-      nationality: 'CL',
-      role: 'user' as const,
-      score: 0,
-      created_at: '2026-08-14T00:00:00Z',
-      last_connected_at: '2026-08-14T00:00:00Z',
-      is_active: true,
-      solves_count: 0,
+  it('performs registration successfully via CTF adapter', async () => {
+    const mockCtfResponse = {
+      ok: true,
+      message: 'Registro exitoso',
+      token: 'jwt-token-reg',
+      data: {
+        currentUser: {
+          id: 'usr-1',
+          username: 'hacker1',
+          nationality: 'CL',
+          role: 'user',
+          score: 0,
+          solvesCount: 0,
+        },
+      },
     };
 
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => mockUser,
+      json: async () => mockCtfResponse,
     });
     vi.stubGlobal('fetch', mockFetch);
 
-    const user = await register({
+    const res = await register({
       username: 'hacker1',
-      email: 'hacker1@ucn.cl',
       password: 'password123',
       nationality: 'CL',
     });
 
-    expect(user.username).toBe('hacker1');
-    expect(user.nationality).toBe('CL');
+    expect(res.ok).toBe(true);
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/auth/register'),
+      expect.stringContaining('/api/ctf-academy'),
       expect.objectContaining({ method: 'POST' })
     );
   });
 
   it('performs login, saves token and user in localStorage', async () => {
     const mockAuthResponse = {
-      access_token: 'jwt-access-token-xyz',
-      token_type: 'bearer',
-      user: {
-        id: 'usr-1',
-        username: 'hacker1',
-        email: 'hacker1@ucn.cl',
-        nationality: 'CL',
-        role: 'user' as const,
-        score: 100,
-        created_at: '2026-08-14T00:00:00Z',
-        last_connected_at: '2026-08-14T00:00:00Z',
-        is_active: true,
-        solves_count: 1,
+      ok: true,
+      message: 'Login exitoso',
+      token: 'jwt-access-token-xyz',
+      data: {
+        currentUser: {
+          id: 'usr-1',
+          username: 'hacker1',
+          nationality: 'CL',
+          role: 'user',
+          score: 100,
+          rankName: 'Hacker',
+          globalRank: 1,
+          solvesCount: 2,
+        },
       },
     };
 
@@ -74,48 +76,60 @@ describe('Auth Service (src/services/auth.ts)', () => {
     });
     vi.stubGlobal('fetch', mockFetch);
 
-    const response = await login({
-      username_or_email: 'hacker1',
+    await login({
+      username: 'hacker1',
       password: 'password123',
     });
 
-    expect(response.access_token).toBe('jwt-access-token-xyz');
     expect(isLoggedIn()).toBe(true);
     expect(getStoredUser()?.username).toBe('hacker1');
   });
 
-  it('fetches current user profile with getMe and updates stored user', async () => {
-    const mockUser = {
-      id: 'usr-1',
+  it('fetches user profile from GET /api/v1/users/{username}/profile', async () => {
+    const mockProfile = {
       username: 'hacker1',
-      email: 'hacker1@ucn.cl',
+      role: 'user',
       nationality: 'CL',
-      role: 'user' as const,
       score: 150,
-      created_at: '2026-08-14T00:00:00Z',
-      last_connected_at: '2026-08-14T00:05:00Z',
-      is_active: true,
-      solves_count: 2,
+      rankName: 'Hacker',
+      globalRank: 3,
+      solvesCount: 2,
+      createdAt: '1723700000000',
+      categoryBreakdown: {
+        web: { count: 1, points: 100 },
+        crypto: { count: 1, points: 50 },
+      },
+      recentSolves: [
+        { challenge_title: 'Sanitizer Web', category: 'WEB', points: 100, solved_at: '1723701000000' },
+      ],
     };
 
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => mockUser,
+      json: async () => mockProfile,
     });
     vi.stubGlobal('fetch', mockFetch);
 
-    const user = await getMe();
-    expect(user.username).toBe('hacker1');
-    expect(user.score).toBe(150);
-    expect(getStoredUser()?.score).toBe(150);
+    const userProfile = await getUserProfile('hacker1');
+    expect(userProfile.username).toBe('hacker1');
+    expect(userProfile.score).toBe(150);
+    expect(userProfile.rankName).toBe('Hacker');
+    expect(userProfile.globalRank).toBe(3);
   });
 
-  it('clears credentials on logout', () => {
+  it('clears credentials on logout', async () => {
     localStorage.setItem('eclipsec_token', 'sample-token');
-    localStorage.setItem('eclipsec_user', JSON.stringify({ username: 'test' }));
+    localStorage.setItem('eclipsec_ctf_user', JSON.stringify({ username: 'test' }));
 
-    logout();
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    await logout();
     expect(isLoggedIn()).toBe(false);
     expect(getStoredUser()).toBeNull();
   });

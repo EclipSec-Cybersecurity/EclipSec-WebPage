@@ -21,7 +21,7 @@ const CTF = () => {
     // Redirect if already logged in
     useEffect(() => {
         if (isLoggedIn()) {
-            navigate(NAV_ROUTES.ctfDashboard, { replace: true });
+            navigate(NAV_ROUTES.ctfLobby, { replace: true });
         }
     }, [navigate]);
 
@@ -102,7 +102,7 @@ const CTF = () => {
             }
 
             setSuccessMsg(result.message);
-            setTimeout(() => navigate(NAV_ROUTES.ctfDashboard), 600);
+            setTimeout(() => navigate(NAV_ROUTES.ctfLobby), 600);
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : 'Error desconocido';
             setError(msg);

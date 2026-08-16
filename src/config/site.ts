@@ -28,5 +28,7 @@ export const NAV_ROUTES = {
     about: '/nosotros',
     contact: '/contacto',
     ctf: '/ctf',
-    ctfDashboard: '/ctf/dashboard',
+    ctfLobby: '/ctf/lobby',
+    ctfProfile: '/ctf/profile',
+    ctfDashboard: '/ctf/profile',
 } as const;

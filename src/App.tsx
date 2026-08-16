@@ -1,11 +1,12 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Services from './pages/Services';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import CTF from './pages/CTF';
-import CTFDashboard from './pages/CTFDashboard';
+import CTFLobby from './pages/CTFLobby';
+import CTFProfile from './pages/CTFProfile';
 
 function App() {
   return (
@@ -13,7 +14,16 @@ function App() {
         <Routes>
           {/* CTF section - independent layout */}
           <Route path="/ctf" element={<CTF />} />
-          <Route path="/ctf/dashboard" element={<CTFDashboard />} />
+          <Route path="/ctf/lobby" element={<CTFLobby />} />
+          <Route path="/ctf/challenges" element={<Navigate to="/ctf/lobby" replace />} />
+          <Route path="/ctf/profile" element={<CTFProfile />} />
+          <Route path="/ctf/profile/:username" element={<CTFProfile />} />
+
+          {/* Legacy & Shortcut redirects */}
+          <Route path="/ctf/dashboard" element={<Navigate to="/ctf/profile" replace />} />
+          <Route path="/dashboard" element={<Navigate to="/ctf/profile" replace />} />
+          <Route path="/perfil" element={<Navigate to="/ctf/profile" replace />} />
+          <Route path="/profile" element={<Navigate to="/ctf/profile" replace />} />
 
           {/* Company site pages with shared layout */}
           <Route path="/" element={<Layout />}>

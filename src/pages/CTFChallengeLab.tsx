@@ -16,11 +16,10 @@ import {
     CTF_SERVER,
 } from '../config/challenges';
 import {
-    completeAcademyChallenge,
-    getAcademyState,
+        getAcademyState,
     getCountryFlag,
 } from '../lib/ctfAcademy';
-import { type UserProfile } from '../services/auth';
+import { type CtfUser } from '../services/auth';
 
 /* Lazy-load WebTerminal para no bloquear el bundle principal */
 const WebTerminal = lazy(() => import('../components/WebTerminal'));
@@ -115,7 +114,7 @@ const CTFChallengeLab = () => {
     const [flagInput, setFlagInput] = useState('');
     const [flagResult, setFlagResult] = useState<'correct' | 'wrong' | null>(null);
     const [flagMessage, setFlagMessage] = useState('');
-    const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+    const [currentUser, setCurrentUser] = useState<CtfUser | null>(null);
     const [isCompleted, setIsCompleted] = useState(false);
     const [submittingFlag, setSubmittingFlag] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -139,7 +138,7 @@ const CTFChallengeLab = () => {
 
         const loadChallenge = async () => {
             const found = challenges.find(c => c.id === challengeId);
-            if (!found) { navigate(NAV_ROUTES.ctfChallenges); return; }
+            if (!found) { navigate(NAV_ROUTES.ctf); return; }
 
             const academyState = await getAcademyState();
             const user = academyState.currentUser;
@@ -150,12 +149,12 @@ const CTFChallengeLab = () => {
 
             // If not logged in, redirect to challenge list so they can login or register
             if (!user) {
-                navigate(NAV_ROUTES.ctfChallenges, { replace: true });
+                navigate(NAV_ROUTES.ctf, { replace: true });
                 return;
             }
 
             // Check if user solved this challenge in the backend
-            const backendCh = academyState.challenges.find(
+            const backendCh = ((academyState as any).challenges || []).find(
                 bc => bc.slug === found.id || bc.id === found.id
             );
             if (backendCh?.is_solved) {
@@ -221,7 +220,7 @@ const CTFChallengeLab = () => {
         if (!challenge || !input) return;
 
         setSubmittingFlag(true);
-        const result = await completeAcademyChallenge(challenge.id, input);
+        const result = await (challenge.id, input);
         setSubmittingFlag(false);
 
         setFlagResult(result.ok ? 'correct' : 'wrong');
@@ -281,7 +280,7 @@ const CTFChallengeLab = () => {
 
                     {/* Left: title */}
                     <div className="flex items-center gap-4">
-                        <Link to={NAV_ROUTES.ctfChallenges}
+                        <Link to={NAV_ROUTES.ctf}
                             className="group p-2 rounded-lg border border-[#00ff41]/20 hover:bg-[#00ff41]/10 transition-all">
                             <ArrowLeft className="w-5 h-5 text-[#00ff41]/60 group-hover:text-[#00ff41]" />
                         </Link>
@@ -597,7 +596,7 @@ const CTFChallengeLab = () => {
                                     return (
                                         <div className="mt-3">
                                             <Link
-                                                to={`${NAV_ROUTES.challengeLab}/${nextChallenge.id}`}
+                                                to={`${NAV_ROUTES.ctfDashboard}/${nextChallenge.id}`}
                                                 className="group relative w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest bg-[#00ff41]/10 text-[#00ff41] border border-[#00ff41]/30 hover:bg-[#00ff41]/20 transition-all shadow-[0_0_15px_rgba(0,255,65,0.1)]"
                                             >
                                                 Siguiente Nivel <ChevronRight className="w-4 h-4" />
