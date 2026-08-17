@@ -223,23 +223,25 @@ const CTFLobby = () => {
             <div className="flex items-center gap-4">
               <Link
                 to={NAV_ROUTES.ctfProfile}
-                className="flex items-center gap-3 bg-[#0a0a0a] border border-[#00ff41]/30 hover:border-[#00ff41] px-3.5 py-1.5 rounded-xl transition-all shadow-[0_0_15px_rgba(0,255,65,0.1)] group"
+                className="flex items-center space-x-3 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-emerald-500/30 hover:border-emerald-500 transition-all text-sm font-medium shadow-[0_0_15px_rgba(16,185,129,0.1)] group"
               >
-                <div className="text-lg">{flagEmoji}</div>
-                <div className="text-left">
-                  <div className="text-xs font-bold text-white group-hover:text-[#00ff41] transition-colors flex items-center gap-1.5">
-                    {currentUser.username}
-                    {isAdmin ? (
-                      <span className="text-[10px] bg-red-950 border border-red-500 text-red-400 px-1 rounded font-bold">ADMIN</span>
-                    ) : (
-                      <span className="text-[10px] bg-[#00ff41]/10 text-[#00ff41] px-1 rounded font-semibold">USER</span>
-                    )}
+                {/* Avatar con la inicial del usuario */}
+                <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs uppercase border border-emerald-500/40 group-hover:scale-105 transition-transform">
+                  {currentUser.username?.[0] || 'U'}
+                </div>
+
+                {/* Username y Badge de Rol */}
+                <div className="flex flex-col text-left">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-slate-200 group-hover:text-emerald-400 transition-colors">{currentUser.username}</span>
+                    <span className="text-[10px] text-emerald-400 font-mono uppercase tracking-wider bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                      {currentUser.role || 'USER'}
+                    </span>
                   </div>
-                  <div className="text-[10px] text-gray-400">
-                    <strong className="text-[#00ff41]">{currentUser.score || 0}</strong> PTS • {currentUser.rankName || 'Noob'}
+                  <div className="text-[10px] text-slate-400">
+                    <strong className="text-emerald-400">{currentUser.score || 0}</strong> PTS • {currentUser.rankName || 'Noob'}
                   </div>
                 </div>
-                <User className="w-4 h-4 text-[#00ff41] ml-1 group-hover:scale-110 transition-transform" />
               </Link>
 
               <button
