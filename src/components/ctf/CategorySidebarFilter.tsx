@@ -32,12 +32,12 @@ export function CategorySidebarFilter({ onFilterChange }: CategorySidebarFilterP
   return (
     <aside
       className={`transition-all duration-300 ${
-        isOpen ? 'w-full lg:w-64' : 'w-full lg:w-16'
-      } bg-slate-900 border-r border-slate-800 p-4 flex flex-col rounded-xl`}
+        isOpen ? 'w-full xl:w-64' : 'w-full xl:w-16'
+      } bg-[#0a0a0a]/95 border border-[#00ff41]/20 p-4 flex flex-col rounded-2xl backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.8)]`}
     >
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="text-xs text-slate-400 hover:text-white mb-4 text-left font-bold"
+        className="text-xs text-gray-400 hover:text-[#00ff41] mb-4 text-left font-bold transition-colors"
       >
         {isOpen ? '◀ Contraer Filtros' : '▶ Filtros'}
       </button>
@@ -45,20 +45,20 @@ export function CategorySidebarFilter({ onFilterChange }: CategorySidebarFilterP
         <div className="flex flex-col space-y-6">
           {/* Sección Categorías */}
           <div>
-            <h4 className="text-xs font-bold uppercase text-slate-400 mb-2">Categorías</h4>
+            <h4 className="text-xs font-bold uppercase text-gray-400 mb-2 tracking-wider">Categorías</h4>
             <div className="flex flex-col space-y-1">
               {categories.map((c) => (
                 <button
                   key={c.category}
                   onClick={() => handleSelectCategory(c.category)}
-                  className={`flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all ${
+                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                     selectedCategory === c.category
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                      : 'bg-slate-800/40 text-slate-300 hover:bg-slate-800'
+                      ? 'bg-[#00ff41]/20 text-[#00ff41] border border-[#00ff41]/40 shadow-[0_0_10px_rgba(0,255,65,0.1)]'
+                      : 'bg-black/50 text-gray-300 hover:bg-black/80 hover:text-white border border-transparent'
                   }`}
                 >
                   <span className="uppercase">{c.category}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 font-mono">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-black text-gray-400 font-mono border border-gray-800">
                     {c.count}
                   </span>
                 </button>
@@ -67,16 +67,16 @@ export function CategorySidebarFilter({ onFilterChange }: CategorySidebarFilterP
           </div>
           {/* Sección Dificultad */}
           <div>
-            <h4 className="text-xs font-bold uppercase text-slate-400 mb-2">Dificultad</h4>
+            <h4 className="text-xs font-bold uppercase text-gray-400 mb-2 tracking-wider">Dificultad</h4>
             <div className="flex flex-wrap gap-1.5">
               {['EASY', 'MEDIUM', 'HARD', 'INSANE'].map((d) => (
                 <button
                   key={d}
                   onClick={() => handleSelectDifficulty(d)}
-                  className={`px-2.5 py-1 rounded text-[11px] font-mono transition-all ${
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all ${
                     selectedDifficulty === d
-                      ? 'bg-emerald-500 text-slate-950 font-bold'
-                      : 'bg-slate-800 text-slate-400 hover:text-white'
+                      ? 'bg-[#00ff41] text-black font-bold shadow-[0_0_10px_rgba(0,255,65,0.3)]'
+                      : 'bg-black/60 text-gray-400 hover:text-white border border-gray-800'
                   }`}
                 >
                   {d}

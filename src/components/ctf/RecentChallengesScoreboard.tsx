@@ -11,30 +11,36 @@ export function RecentChallengesScoreboard() {
   }, []);
 
   return (
-    <aside className="w-full lg:w-80 bg-slate-900 border-l border-slate-800 p-4 flex flex-col space-y-4 rounded-xl">
-      <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center space-x-2">
-        <span>⚡ Retos Agregados Recientemente</span>
+    <aside className="w-full xl:w-80 bg-[#0a0a0a]/95 border border-[#00ff41]/20 p-4 flex flex-col space-y-4 rounded-2xl backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.8)]">
+      <h3 className="text-xs font-black uppercase tracking-widest text-white flex items-center space-x-2 pb-2 border-b border-[#00ff41]/20">
+        <span className="text-[#00ff41]">⚡ RETOS RECIENTES</span>
       </h3>
       <div className="flex flex-col space-y-2">
-        {recent.map((ch) => (
-          <div
-            key={ch.id || ch.slug}
-            className="p-3 bg-slate-800/60 rounded-lg border border-slate-700/50 flex flex-col"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-emerald-400 uppercase">
-                {ch.category}
+        {recent.length === 0 ? (
+          <p className="text-xs text-gray-500 italic py-2">Sin retos recientes</p>
+        ) : (
+          recent.map((ch) => (
+            <div
+              key={ch.id || ch.slug}
+              className="p-3 bg-black/60 rounded-xl border border-[#00ff41]/20 hover:border-[#00ff41]/60 transition-colors flex flex-col"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-[#00ff41] uppercase tracking-wider">
+                  {ch.category}
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-black text-gray-300 font-mono border border-gray-800">
+                  {ch.difficulty}
+                </span>
+              </div>
+              <span className="text-xs font-bold text-white mt-1 line-clamp-1">
+                {ch.title}
               </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 font-mono">
-                {ch.difficulty}
+              <span className="text-[10px] text-gray-400 mt-0.5 font-mono">
+                +{ch.points} PTS
               </span>
             </div>
-            <span className="text-sm font-semibold text-slate-200 mt-1">
-              {ch.title}
-            </span>
-            <span className="text-xs text-slate-400 mt-0.5">{ch.points} pts</span>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </aside>
   );
