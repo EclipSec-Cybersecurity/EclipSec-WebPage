@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { register, login, logout, getStoredUser, isLoggedIn, getUserProfile } from '../../services/auth';
-import { getChallenges, submitFlag } from '../../services/challenges';
+import { getChallenges, getRecentChallenges, getChallengeCategories, submitFlag } from '../../services/challenges';
 import { getLeaderboard, getCountryStats } from '../../services/leaderboard';
 
 describe('Auth Service (src/services/auth.ts)', () => {
@@ -165,6 +165,59 @@ describe('Challenges Service (src/services/challenges.ts)', () => {
     const list = await getChallenges();
     expect(list.length).toBe(1);
     expect(list[0].slug).toBe('web-001');
+  });
+
+  it('fetches challenge list with category and difficulty query filters', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => [],
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    await getChallenges({ category: 'web', difficulty: 'EASY' });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/challenges?category=web&difficulty=EASY'),
+      expect.anything()
+    );
+  });
+
+  it('fetches recent challenges limit=5', async () => {
+    const mockRecent = [
+      { id: 'ch-1', slug: 'ch-1', title: 'New Web Challenge', category: 'web', difficulty: 'EASY', points: 100 },
+    ];
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => mockRecent,
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const data = await getRecentChallenges(5);
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/challenges/recent?limit=5'),
+      expect.anything()
+    );
+    expect(data.length).toBe(1);
+    expect(data[0].title).toBe('New Web Challenge');
+  });
+
+  it('fetches category list with exercise counts', async () => {
+    const mockCategories = [{ category: 'web', count: 11 }];
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => mockCategories,
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const data = await getChallengeCategories();
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/challenges/categories'),
+      expect.anything()
+    );
+    expect(data).toEqual([{ category: 'web', count: 11 }]);
   });
 
   it('submits flag and returns validation response', async () => {

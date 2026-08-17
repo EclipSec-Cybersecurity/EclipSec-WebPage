@@ -163,7 +163,7 @@ const CTFProfile = () => {
     nationality: currentUser.nationality || 'CL',
     score: currentUser.score || 0,
     rankName: currentUser.rankName || 'Noob',
-    globalRank: currentUser.globalRank ?? null,
+    globalRank: currentUser.globalRank ?? currentUser.global_rank ?? null,
     solvesCount: currentUser.solvesCount ?? currentUser.solves_count ?? 0,
     createdAt: currentUser.createdAt || currentUser.created_at,
     description: currentUser.description,
@@ -184,6 +184,11 @@ const CTFProfile = () => {
       </div>
     );
   }
+
+  const rawGlobalRank = displayUser.globalRank ?? (displayUser as any).global_rank;
+  const displayRank = typeof rawGlobalRank === 'number'
+    ? `#${rawGlobalRank}`
+    : (rawGlobalRank || 'Sin clasificar');
 
   const isAdmin = displayUser.role?.toLowerCase() === 'admin';
   const flagEmoji = getCountryFlag(displayUser.nationality);
@@ -337,8 +342,8 @@ const CTFProfile = () => {
             {/* Quick Actions / Share Profile */}
             <div className="flex flex-col items-end justify-center text-right">
               <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">Status Global</div>
-              <div className="text-3xl font-black text-white">
-                {displayUser.globalRank ? `#${displayUser.globalRank}` : 'TOP PLAYER'}
+              <div className="text-2xl font-black text-emerald-400">
+                {displayRank}
               </div>
             </div>
           </div>
@@ -384,15 +389,15 @@ const CTFProfile = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="border border-[#00ff41]/30 bg-[#0a0a0a]/80 p-5 rounded-xl flex items-center gap-4 hover:border-[#00ff41]/60 transition-all shadow-[0_0_15px_rgba(0,255,65,0.05)]"
+            className="border border-[#00ff41]/30 bg-[#0a0a0a]/80 p-5 rounded-xl flex items-center gap-4 hover:border-[#00ff41]/60 transition-all shadow-[0_0_15px_rgba(0,255,65,0.05)] ranking-badge"
           >
             <div className="p-3 bg-cyan-950/40 border border-cyan-500/40 rounded-lg text-cyan-400">
               <TrendingUp className="w-6 h-6" />
             </div>
             <div>
-              <div className="text-xs text-gray-400 uppercase tracking-widest">Puesto en Ranking</div>
-              <div className="text-2xl font-black text-white">
-                {displayUser.globalRank ? `#${displayUser.globalRank}` : 'Clasificado'}
+              <div className="text-slate-400 text-xs font-mono">Puesto Global</div>
+              <div className="text-emerald-400 font-bold text-lg">
+                {displayRank}
               </div>
             </div>
           </motion.div>

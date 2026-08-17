@@ -8,7 +8,8 @@ export interface CtfUser {
   score: number;
   role: 'admin' | 'user' | string;
   rankName?: string;
-  globalRank?: number | null;
+  globalRank?: number | string | null;
+  global_rank?: number | string | null;
   solvesCount?: number;
   solves_count?: number;
   last_connected_at?: string;
@@ -40,7 +41,8 @@ export interface UserProfileResponse {
   nationality: string;
   score: number;
   rankName: string;
-  globalRank: number | null;
+  globalRank: number | string | null;
+  global_rank?: number | string | null;
   solvesCount: number;
   createdAt?: string | number;
   created_at?: string | number;

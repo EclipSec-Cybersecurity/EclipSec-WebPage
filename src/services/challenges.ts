@@ -21,12 +21,41 @@ export interface FlagSubmitResult {
   new_total_score: number;
 }
 
+export interface ChallengeCategoryCount {
+  category: string;
+  count: number;
+}
+
 /**
- * List all challenges from the backend.
+ * List challenges from the backend with optional category and difficulty filtering.
  * Automatically marks is_solved=true if the user is authenticated.
+ * GET /api/v1/challenges?category={cat}&difficulty={diff}
  */
-export async function getChallenges(): Promise<BackendChallenge[]> {
-  return apiRequest<BackendChallenge[]>('/api/v1/challenges');
+export async function getChallenges(filters?: {
+  category?: string;
+  difficulty?: string;
+}): Promise<BackendChallenge[]> {
+  const params = new URLSearchParams();
+  if (filters?.category) params.set('category', filters.category);
+  if (filters?.difficulty) params.set('difficulty', filters.difficulty);
+  const query = params.toString();
+  return apiRequest<BackendChallenge[]>(`/api/v1/challenges${query ? `?${query}` : ''}`);
+}
+
+/**
+ * Fetch recently added challenges.
+ * GET /api/v1/challenges/recent?limit=5
+ */
+export async function getRecentChallenges(limit = 5): Promise<BackendChallenge[]> {
+  return apiRequest<BackendChallenge[]>(`/api/v1/challenges/recent?limit=${limit}`);
+}
+
+/**
+ * Fetch list of challenge categories and exercise count per category.
+ * GET /api/v1/challenges/categories
+ */
+export async function getChallengeCategories(): Promise<ChallengeCategoryCount[]> {
+  return apiRequest<ChallengeCategoryCount[]>('/api/v1/challenges/categories');
 }
 
 /**

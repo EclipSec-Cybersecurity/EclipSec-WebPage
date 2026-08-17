@@ -27,6 +27,8 @@ import { NAV_ROUTES } from '../config/site';
 import { getAcademyState, logoutAcademy, getCountryFlag } from '../lib/ctfAcademy';
 import { getChallenges, type BackendChallenge } from '../services/challenges';
 import { isLoggedIn, type CtfUser } from '../services/auth';
+import { CategorySidebarFilter } from '../components/ctf/CategorySidebarFilter';
+import { RecentChallengesScoreboard } from '../components/ctf/RecentChallengesScoreboard';
 
 type DifficultyFilter = 'ALL' | 'EASY' | 'MEDIUM' | 'HARD' | 'INSANE';
 type CategoryFilter = 'ALL' | 'WEB' | 'CRYPTO' | 'FORENSICS' | 'PWN' | 'MISC';
@@ -142,6 +144,23 @@ const CTFLobby = () => {
       await logoutAcademy();
     } finally {
       navigate(NAV_ROUTES.ctf, { replace: true });
+    }
+  };
+
+  const handleSidebarFilterChange = async (filters: { category: string; difficulty: string }) => {
+    const cat = filters.category ? (filters.category.toUpperCase() as CategoryFilter) : 'ALL';
+    const diff = filters.difficulty ? (filters.difficulty.toUpperCase() as DifficultyFilter) : 'ALL';
+    setSelectedCategory(cat);
+    setSelectedDifficulty(diff);
+
+    try {
+      const data = await getChallenges({
+        category: filters.category || undefined,
+        difficulty: filters.difficulty || undefined,
+      });
+      setChallenges(data);
+    } catch (err) {
+      console.error('Error fetching filtered challenges:', err);
     }
   };
 
@@ -291,184 +310,208 @@ const CTFLobby = () => {
           </div>
         </motion.div>
 
-        {/* ── Filters & Search Controls ── */}
-        <div className="bg-[#0a0a0a]/80 border border-[#00ff41]/20 rounded-2xl p-4 mb-8 space-y-4">
-          <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-            {/* Search Input */}
-            <div className="relative w-full md:w-80">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Buscar por título o tag..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-black border border-[#00ff41]/30 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff41] transition-colors"
-              />
-            </div>
+        {/* ── Main Layout with Sidebars ── */}
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          {/* Left Sidebar Filter */}
+          <CategorySidebarFilter onFilterChange={handleSidebarFilterChange} />
 
-            {/* Solved toggle */}
-            <label className="flex items-center gap-2 text-xs cursor-pointer text-gray-300 select-none">
-              <input
-                type="checkbox"
-                checked={showSolvedOnly}
-                onChange={(e) => setShowSolvedOnly(e.target.checked)}
-                className="rounded border-[#00ff41] text-[#00ff41] focus:ring-0 bg-black"
-              />
-              Mostrar solo resueltos (<span className="text-[#00ff41]">{solvedCount}</span>)
-            </label>
-          </div>
+          {/* Center Main Content */}
+          <div className="flex-1 min-w-0 w-full">
+            {/* ── Filters & Search Controls ── */}
+            <div className="bg-[#0a0a0a]/80 border border-[#00ff41]/20 rounded-2xl p-4 mb-8 space-y-4">
+              <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+                {/* Search Input */}
+                <div className="relative w-full md:w-80">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por título o tag..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 bg-black border border-[#00ff41]/30 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff41] transition-colors"
+                  />
+                </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#00ff41]/10">
-            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mr-2 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5 text-[#00ff41]" /> Categoría:
-            </span>
-            {(['ALL', 'WEB', 'CRYPTO', 'FORENSICS', 'PWN', 'MISC'] as CategoryFilter[]).map((cat) => {
-              const active = selectedCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold tracking-wider transition-all ${
-                    active
-                      ? 'bg-[#00ff41] text-black font-bold shadow-[0_0_10px_rgba(0,255,65,0.4)]'
-                      : 'bg-black/60 border border-[#00ff41]/30 text-gray-300 hover:border-[#00ff41] hover:text-[#00ff41]'
-                  }`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
+                {/* Solved toggle */}
+                <label className="flex items-center gap-2 text-xs cursor-pointer text-gray-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={showSolvedOnly}
+                    onChange={(e) => setShowSolvedOnly(e.target.checked)}
+                    className="rounded border-[#00ff41] text-[#00ff41] focus:ring-0 bg-black"
+                  />
+                  Mostrar solo resueltos (<span className="text-[#00ff41]">{solvedCount}</span>)
+                </label>
+              </div>
 
-          {/* Difficulty Filter Pills */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mr-2 flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5 text-[#00ff41]" /> Dificultad:
-            </span>
-            {(['ALL', 'EASY', 'MEDIUM', 'HARD', 'INSANE'] as DifficultyFilter[]).map((diff) => {
-              const active = selectedDifficulty === diff;
-              const diffStyle = diff !== 'ALL' ? DIFFICULTY_CONFIG[diff] : null;
-              return (
-                <button
-                  key={diff}
-                  onClick={() => setSelectedDifficulty(diff)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold tracking-wider transition-all ${
-                    active
-                      ? 'bg-white text-black font-bold shadow-md'
-                      : 'bg-black/60 border border-gray-700 text-gray-300 hover:border-white hover:text-white'
-                  }`}
-                  style={
-                    active && diffStyle
-                      ? { backgroundColor: diffStyle.color, color: '#000' }
-                      : {}
-                  }
-                >
-                  {diff}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── Cards Feed Grid ── */}
-        {filteredChallenges.length === 0 ? (
-          <div className="border border-dashed border-[#00ff41]/20 rounded-2xl p-12 text-center bg-[#0a0a0a]/50">
-            <Shield className="w-12 h-12 mx-auto mb-3 text-gray-600 animate-pulse" />
-            <p className="text-base font-bold text-white">No se encontraron retos</p>
-            <p className="text-xs text-gray-400 mt-1">
-              Probá ajustando los filtros de búsqueda o categoría.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredChallenges.map((ch, idx) => {
-              const diffConfig = DIFFICULTY_CONFIG[ch.difficulty.toUpperCase() as keyof typeof DIFFICULTY_CONFIG] || DIFFICULTY_CONFIG.EASY;
-              const catConfig = CATEGORY_CONFIG[ch.category.toUpperCase()] || { color: '#00ff41', icon: <Globe className="w-4 h-4" /> };
-
-              return (
-                <motion.div
-                  key={ch.id || ch.slug || idx}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className={`border rounded-2xl p-6 bg-[#0a0a0a]/90 backdrop-blur flex flex-col justify-between relative overflow-hidden transition-all duration-300 hover:scale-[1.02] ${
-                    ch.is_solved
-                      ? 'border-[#00ff41] shadow-[0_0_20px_rgba(0,255,65,0.15)]'
-                      : 'border-[#00ff41]/20 hover:border-[#00ff41]/60 shadow-lg'
-                  }`}
-                >
-                  {/* Top Status Strip */}
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    {/* Category Tag */}
-                    <div
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-bold uppercase tracking-wider"
-                      style={{
-                        borderColor: `${catConfig.color}60`,
-                        backgroundColor: `${catConfig.color}15`,
-                        color: catConfig.color,
-                      }}
-                    >
-                      {catConfig.icon}
-                      {ch.category}
-                    </div>
-
-                    {/* Is Solved Badge OR Difficulty */}
-                    {ch.is_solved ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-black bg-[#00ff41]/20 border border-[#00ff41] text-[#00ff41] shadow-[0_0_10px_rgba(0,255,65,0.3)]">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> RESUELTO
-                      </span>
-                    ) : (
-                      <span
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border"
-                        style={{
-                          borderColor: diffConfig.border,
-                          backgroundColor: diffConfig.bg,
-                          color: diffConfig.color,
-                        }}
-                      >
-                        {diffConfig.icon}
-                        {ch.difficulty}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-[#00ff41] transition-colors">
-                      {ch.title}
-                    </h3>
-                    <p className="text-xs text-gray-400 line-clamp-3 leading-relaxed">
-                      {ch.description}
-                    </p>
-                  </div>
-
-                  {/* Footer Info & Action */}
-                  <div className="pt-4 border-t border-[#00ff41]/10 flex items-center justify-between">
-                    <div>
-                      <div className="text-[10px] text-gray-400 uppercase tracking-widest">Recompensa</div>
-                      <div className="text-base font-black text-white">
-                        +{ch.points} <span className="text-xs text-[#00ff41]">PTS</span>
-                      </div>
-                    </div>
-
+              {/* Category Filter Pills */}
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#00ff41]/10">
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mr-2 flex items-center gap-1">
+                  <Filter className="w-3.5 h-3.5 text-[#00ff41]" /> Categoría:
+                </span>
+                {(['ALL', 'WEB', 'CRYPTO', 'FORENSICS', 'PWN', 'MISC'] as CategoryFilter[]).map((cat) => {
+                  const active = selectedCategory === cat;
+                  return (
                     <button
-                      onClick={() => setSelectedChallenge(ch)}
-                      className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                        ch.is_solved
-                          ? 'bg-[#00ff41]/10 border border-[#00ff41] text-[#00ff41] hover:bg-[#00ff41]/20'
-                          : 'bg-[#00ff41] text-black hover:bg-[#00ff41]/80 font-black shadow-[0_0_15px_rgba(0,255,65,0.3)]'
+                      key={cat}
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        handleSidebarFilterChange({
+                          category: cat === 'ALL' ? '' : cat,
+                          difficulty: selectedDifficulty === 'ALL' ? '' : selectedDifficulty,
+                        });
+                      }}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold tracking-wider transition-all ${
+                        active
+                          ? 'bg-[#00ff41] text-black font-bold shadow-[0_0_10px_rgba(0,255,65,0.4)]'
+                          : 'bg-black/60 border border-[#00ff41]/30 text-gray-300 hover:border-[#00ff41] hover:text-[#00ff41]'
                       }`}
                     >
-                      {ch.is_solved ? 'Ver Reto' : 'Lanzar Reto'}
-                      <ChevronRight className="w-4 h-4" />
+                      {cat}
                     </button>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  );
+                })}
+              </div>
+
+              {/* Difficulty Filter Pills */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mr-2 flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5 text-[#00ff41]" /> Dificultad:
+                </span>
+                {(['ALL', 'EASY', 'MEDIUM', 'HARD', 'INSANE'] as DifficultyFilter[]).map((diff) => {
+                  const active = selectedDifficulty === diff;
+                  const diffStyle = diff !== 'ALL' ? DIFFICULTY_CONFIG[diff] : null;
+                  return (
+                    <button
+                      key={diff}
+                      onClick={() => {
+                        setSelectedDifficulty(diff);
+                        handleSidebarFilterChange({
+                          category: selectedCategory === 'ALL' ? '' : selectedCategory,
+                          difficulty: diff === 'ALL' ? '' : diff,
+                        });
+                      }}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold tracking-wider transition-all ${
+                        active
+                          ? 'bg-white text-black font-bold shadow-md'
+                          : 'bg-black/60 border border-gray-700 text-gray-300 hover:border-white hover:text-white'
+                      }`}
+                      style={
+                        active && diffStyle
+                          ? { backgroundColor: diffStyle.color, color: '#000' }
+                          : {}
+                      }
+                    >
+                      {diff}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Cards Feed Grid ── */}
+            {filteredChallenges.length === 0 ? (
+              <div className="border border-dashed border-[#00ff41]/20 rounded-2xl p-12 text-center bg-[#0a0a0a]/50">
+                <Shield className="w-12 h-12 mx-auto mb-3 text-gray-600 animate-pulse" />
+                <p className="text-base font-bold text-white">No se encontraron retos</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Probá ajustando los filtros de búsqueda o categoría.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredChallenges.map((ch, idx) => {
+                  const diffConfig = DIFFICULTY_CONFIG[ch.difficulty.toUpperCase() as keyof typeof DIFFICULTY_CONFIG] || DIFFICULTY_CONFIG.EASY;
+                  const catConfig = CATEGORY_CONFIG[ch.category.toUpperCase()] || { color: '#00ff41', icon: <Globe className="w-4 h-4" /> };
+
+                  return (
+                    <motion.div
+                      key={ch.id || ch.slug || idx}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className={`border rounded-2xl p-6 bg-[#0a0a0a]/90 backdrop-blur flex flex-col justify-between relative overflow-hidden transition-all duration-300 hover:scale-[1.02] ${
+                        ch.is_solved
+                          ? 'border-[#00ff41] shadow-[0_0_20px_rgba(0,255,65,0.15)]'
+                          : 'border-[#00ff41]/20 hover:border-[#00ff41]/60 shadow-lg'
+                      }`}
+                    >
+                      {/* Top Status Strip */}
+                      <div className="flex items-center justify-between gap-2 mb-4">
+                        {/* Category Tag */}
+                        <div
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-bold uppercase tracking-wider"
+                          style={{
+                            borderColor: `${catConfig.color}60`,
+                            backgroundColor: `${catConfig.color}15`,
+                            color: catConfig.color,
+                          }}
+                        >
+                          {catConfig.icon}
+                          {ch.category}
+                        </div>
+
+                        {/* Is Solved Badge OR Difficulty */}
+                        {ch.is_solved ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-black bg-[#00ff41]/20 border border-[#00ff41] text-[#00ff41] shadow-[0_0_10px_rgba(0,255,65,0.3)]">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> RESUELTO
+                          </span>
+                        ) : (
+                          <span
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border"
+                            style={{
+                              borderColor: diffConfig.border,
+                              backgroundColor: diffConfig.bg,
+                              color: diffConfig.color,
+                            }}
+                          >
+                            {diffConfig.icon}
+                            {ch.difficulty}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Body Content */}
+                      <div className="mb-6">
+                        <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-[#00ff41] transition-colors">
+                          {ch.title}
+                        </h3>
+                        <p className="text-xs text-gray-400 line-clamp-3 leading-relaxed">
+                          {ch.description}
+                        </p>
+                      </div>
+
+                      {/* Footer Info & Action */}
+                      <div className="pt-4 border-t border-[#00ff41]/10 flex items-center justify-between">
+                        <div>
+                          <div className="text-[10px] text-gray-400 uppercase tracking-widest">Recompensa</div>
+                          <div className="text-base font-black text-white">
+                            +{ch.points} <span className="text-xs text-[#00ff41]">PTS</span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => setSelectedChallenge(ch)}
+                          className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                            ch.is_solved
+                              ? 'bg-[#00ff41]/10 border border-[#00ff41] text-[#00ff41] hover:bg-[#00ff41]/20'
+                              : 'bg-[#00ff41] text-black hover:bg-[#00ff41]/80 font-black shadow-[0_0_15px_rgba(0,255,65,0.3)]'
+                          }`}
+                        >
+                          {ch.is_solved ? 'Ver Reto' : 'Lanzar Reto'}
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Right Sidebar Recent Challenges */}
+          <RecentChallengesScoreboard />
+        </div>
       </div>
 
       {/* ── Challenge Quick Modal Detail ── */}
