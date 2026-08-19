@@ -127,7 +127,9 @@ const CTFLobby = () => {
 
         // Fetch challenge cards from GET /api/v1/challenges
         const chList = await getChallenges();
-        setChallenges(chList);
+        // Ocultar retos por ahora, mantener plantilla lista
+        setChallenges([]); 
+        // setChallenges(chList);
       } catch (err) {
         console.error('Failed to load lobby data:', err);
       } finally {
@@ -158,7 +160,9 @@ const CTFLobby = () => {
         category: filters.category || undefined,
         difficulty: filters.difficulty || undefined,
       });
-      setChallenges(data);
+      // Ocultar retos por ahora, mantener plantilla lista
+      setChallenges([]); 
+      // setChallenges(data);
     } catch (err) {
       console.error('Error fetching filtered challenges:', err);
     }
@@ -423,10 +427,10 @@ const CTFLobby = () => {
           {/* ── Cards Feed Grid ── */}
           {filteredChallenges.length === 0 ? (
             <div className="border border-dashed border-[#00ff41]/20 rounded-2xl p-12 text-center bg-[#0a0a0a]/50">
-              <Shield className="w-12 h-12 mx-auto mb-3 text-gray-600 animate-pulse" />
-              <p className="text-base font-bold text-white">No se encontraron retos</p>
-              <p className="text-xs text-gray-400 mt-1">
-                Probá ajustando los filtros de búsqueda o categoría.
+              <Shield className="w-12 h-12 mx-auto mb-3 text-[#00ff41] animate-pulse" />
+              <p className="text-xl font-bold text-white">Aún no hay retos disponibles</p>
+              <p className="text-sm text-gray-400 mt-2">
+                ¡Pronto van a llegar nuevos desafíos! Mantente atento.
               </p>
             </div>
           ) : (
