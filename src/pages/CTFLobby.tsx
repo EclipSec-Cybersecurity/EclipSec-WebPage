@@ -222,17 +222,15 @@ const CTFLobby = () => {
         }}
       />
 
-      {/* Left Sidebar - Fixed to outer left edge on desktop */}
-      <div className="hidden xl:block fixed left-4 top-24 z-20 w-64 max-h-[calc(100vh-7rem)] overflow-y-auto">
-        <CategorySidebarFilter onFilterChange={handleSidebarFilterChange} />
-      </div>
+      {/* Main Layout Container */}
+      <div className="relative z-10 w-full max-w-[1600px] mx-auto px-4 py-6 flex flex-col xl:flex-row gap-6 xl:gap-8 justify-center items-start">
+        {/* Left Sidebar - Sticky on desktop */}
+        <div className="hidden xl:block sticky top-24 z-20 w-64 shrink-0 max-h-[calc(100vh-7rem)] overflow-y-auto">
+          <CategorySidebarFilter onFilterChange={handleSidebarFilterChange} />
+        </div>
 
-      {/* Right Sidebar - Fixed to outer right edge on desktop */}
-      <div className="hidden xl:block fixed right-4 top-24 z-20 w-80 max-h-[calc(100vh-7rem)] overflow-y-auto">
-        <RecentChallengesScoreboard />
-      </div>
-
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-6">
+        {/* Center Content */}
+        <div className="w-full max-w-5xl flex-1">
         {/* Header Bar */}
         <motion.div
           initial={{ opacity: 0, y: -16 }}
@@ -522,6 +520,11 @@ const CTFLobby = () => {
               })}
             </div>
           )}
+        </div>
+
+        {/* Right Sidebar - Sticky on desktop */}
+        <div className="hidden xl:block sticky top-24 z-20 w-80 shrink-0 max-h-[calc(100vh-7rem)] overflow-y-auto">
+          <RecentChallengesScoreboard />
         </div>
       </div>
 
