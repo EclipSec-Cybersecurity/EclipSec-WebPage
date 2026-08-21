@@ -521,6 +521,7 @@ const CTFLobby = () => {
             </div>
           )}
         </div>
+        </div>
 
         {/* Right Sidebar - Sticky on desktop */}
         <div className="hidden xl:block sticky top-24 z-20 w-80 shrink-0 max-h-[calc(100vh-7rem)] overflow-y-auto">
