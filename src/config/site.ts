@@ -29,6 +29,10 @@ export const NAV_ROUTES = {
     contact: '/contacto',
     ctf: '/ctf',
     ctfLobby: '/ctf/lobby',
+    ctfChallenges: '/ctf/challenges',
     ctfProfile: '/ctf/profile',
     ctfDashboard: '/ctf/profile',
 } as const;
+
+/** Detail route for a single challenge in the CTF catalog. */
+export const ctfChallengeRoute = (id: string) => `/ctf/challenges/${encodeURIComponent(id)}`;

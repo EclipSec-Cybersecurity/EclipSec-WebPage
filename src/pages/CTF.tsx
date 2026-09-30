@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, ArrowLeft, Terminal, User, Lock, AlertCircle, Loader2, UserPlus } from 'lucide-react';
+import { Shield, ArrowLeft, Terminal, User, Lock, AlertCircle, Loader2, UserPlus, LayoutGrid } from 'lucide-react';
 import { NAV_ROUTES } from '../config/site';
 import { loginAcademyUser, registerAcademyUser } from '../lib/ctfAcademy';
 import { isLoggedIn } from '../services/auth';
@@ -136,6 +136,14 @@ const CTF = () => {
                 className="absolute top-5 left-5 z-20 flex items-center gap-2 text-[#00ff41]/50 hover:text-[#00ff41] transition-colors text-xs border border-[#00ff41]/20 px-3 py-1.5 rounded"
             >
                 <ArrowLeft className="w-3 h-3" /> BACK_TO_ECLIPSEC
+            </Link>
+
+            {/* Public challenge catalog (no login required) */}
+            <Link
+                to={NAV_ROUTES.ctfChallenges}
+                className="absolute top-5 right-5 z-20 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all bg-[#00ff41]/10 border border-[#00ff41] text-[#00ff41] hover:bg-[#00ff41]/20"
+            >
+                <LayoutGrid className="w-3.5 h-3.5" /> Ver catálogo de challenges
             </Link>
 
             {/* Main card */}

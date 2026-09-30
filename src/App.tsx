@@ -7,6 +7,9 @@ import Contact from './pages/Contact';
 import CTF from './pages/CTF';
 import CTFLobby from './pages/CTFLobby';
 import CTFProfile from './pages/CTFProfile';
+import CTFChallengeCatalog from './pages/CTFChallengeCatalog';
+import CTFChallengeDetail from './pages/CTFChallengeDetail';
+import CTFChallengeRedirect from './pages/CTFChallengeRedirect';
 
 function App() {
   return (
@@ -15,7 +18,9 @@ function App() {
           {/* CTF section - independent layout */}
           <Route path="/ctf" element={<CTF />} />
           <Route path="/ctf/lobby" element={<CTFLobby />} />
-          <Route path="/ctf/challenges" element={<Navigate to="/ctf/lobby" replace />} />
+          <Route path="/ctf/challenges" element={<CTFChallengeCatalog />} />
+          <Route path="/ctf/challenges/:challengeId" element={<CTFChallengeDetail />} />
+          <Route path="/ctf/challenge/:challengeId" element={<CTFChallengeRedirect />} />
           <Route path="/ctf/profile" element={<CTFProfile />} />
           <Route path="/ctf/profile/:username" element={<CTFProfile />} />
 

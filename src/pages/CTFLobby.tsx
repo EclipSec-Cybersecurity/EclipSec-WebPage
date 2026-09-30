@@ -22,6 +22,7 @@ import {
   ExternalLink,
   ChevronRight,
   UserCheck,
+  LayoutGrid,
 } from 'lucide-react';
 import { NAV_ROUTES } from '../config/site';
 import { getAcademyState, logoutAcademy, getCountryFlag } from '../lib/ctfAcademy';
@@ -254,6 +255,13 @@ const CTFLobby = () => {
           {/* User Quick Bar & Navigation */}
           {currentUser && (
             <div className="flex items-center gap-4">
+              <Link
+                to={NAV_ROUTES.ctfChallenges}
+                className="flex items-center gap-2 px-3 py-1.5 border border-[#00ff41]/40 bg-[#00ff41]/5 rounded text-xs text-[#00ff41] hover:bg-[#00ff41]/20 transition-all"
+              >
+                <LayoutGrid className="w-4 h-4" /> Challenges
+              </Link>
+
               <Link
                 to={NAV_ROUTES.ctfProfile}
                 className="flex items-center space-x-3 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-emerald-500/30 hover:border-emerald-500 transition-all text-sm font-medium shadow-[0_0_15px_rgba(16,185,129,0.1)] group"
