@@ -3,13 +3,22 @@ import { getChallengeCategories, type ChallengeCategoryCount } from '../../servi
 
 export interface CategorySidebarFilterProps {
   onFilterChange: (filters: { category: string; difficulty: string }) => void;
+  /** Controlled selection. When omitted the component keeps its own state. */
+  category?: string;
+  difficulty?: string;
 }
 
-export function CategorySidebarFilter({ onFilterChange }: CategorySidebarFilterProps) {
+export function CategorySidebarFilter({
+  onFilterChange,
+  category,
+  difficulty,
+}: CategorySidebarFilterProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [categories, setCategories] = useState<ChallengeCategoryCount[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [localCategory, setSelectedCategory] = useState('');
+  const [localDifficulty, setSelectedDifficulty] = useState('');
+  const selectedCategory = category ?? localCategory;
+  const selectedDifficulty = difficulty ?? localDifficulty;
 
   useEffect(() => {
     getChallengeCategories()
@@ -18,7 +27,7 @@ export function CategorySidebarFilter({ onFilterChange }: CategorySidebarFilterP
   }, []);
 
   const handleSelectCategory = (cat: string) => {
-    const nextCat = selectedCategory === cat ? '' : cat;
+    const nextCat = selectedCategory.toLowerCase() === cat.toLowerCase() ? '' : cat;
     setSelectedCategory(nextCat);
     onFilterChange({ category: nextCat, difficulty: selectedDifficulty });
   };
@@ -52,7 +61,7 @@ export function CategorySidebarFilter({ onFilterChange }: CategorySidebarFilterP
                   key={c.category}
                   onClick={() => handleSelectCategory(c.category)}
                   className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                    selectedCategory === c.category
+                    selectedCategory.toLowerCase() === c.category.toLowerCase()
                       ? 'bg-[#00ff41]/20 text-[#00ff41] border border-[#00ff41]/40 shadow-[0_0_10px_rgba(0,255,65,0.1)]'
                       : 'bg-black/50 text-gray-300 hover:bg-black/80 hover:text-white border border-transparent'
                   }`}

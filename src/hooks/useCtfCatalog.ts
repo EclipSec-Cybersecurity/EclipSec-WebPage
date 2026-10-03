@@ -27,7 +27,7 @@ interface Settled<T> {
   error: string | null;
 }
 
-/** Read-only catalog listing from GET /api/challenges. */
+/** Read-only catalog listing from GET /api/v1/challenges. */
 export function useChallengeCatalog(): ChallengeCatalogState {
   const [reloadKey, setReloadKey] = useState(0);
   const [settled, setSettled] = useState<Settled<CtfCatalogChallenge[]> | null>(null);
@@ -66,7 +66,7 @@ export function useChallengeCatalog(): ChallengeCatalogState {
   };
 }
 
-/** Single challenge detail from GET /api/challenges/{challenge_id}. */
+/** Single challenge detail from GET /api/v1/challenges/{challenge_id}. */
 export function useChallengeDetail(challengeId?: string): ChallengeDetailState {
   const [reloadKey, setReloadKey] = useState(0);
   const [settled, setSettled] = useState<Settled<CtfCatalogChallenge | null> | null>(null);

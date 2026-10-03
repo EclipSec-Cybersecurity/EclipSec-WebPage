@@ -34,17 +34,17 @@ describe('CTF Catalog Service (src/services/ctfCatalog.ts)', () => {
     vi.restoreAllMocks();
   });
 
-  it('exposes the unversioned /api/challenges prefix', () => {
-    expect(CHALLENGES_ENDPOINT).toBe('/api/challenges');
+  it('exposes the versioned /api/v1/challenges prefix', () => {
+    expect(CHALLENGES_ENDPOINT).toBe('/api/v1/challenges');
   });
 
-  it('fetches the catalog from GET /api/challenges with a bare array response', async () => {
+  it('fetches the catalog from GET /api/v1/challenges with a bare array response', async () => {
     const mockFetch = stubFetch([SEED_CHALLENGE]);
 
     const challenges = await getChallenges();
 
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/challenges'),
+      expect.stringContaining('/api/v1/challenges'),
       expect.anything()
     );
     expect(challenges).toHaveLength(1);
@@ -105,13 +105,13 @@ describe('CTF Catalog Service (src/services/ctfCatalog.ts)', () => {
     await expect(getChallenges()).resolves.toEqual([]);
   });
 
-  it('fetches a single challenge from GET /api/challenges/{id}', async () => {
+  it('fetches a single challenge from GET /api/v1/challenges/{id}', async () => {
     const mockFetch = stubFetch(SEED_CHALLENGE);
 
     const challenge = await getChallenge('web-sqli-001');
 
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/challenges/web-sqli-001'),
+      expect.stringContaining('/api/v1/challenges/web-sqli-001'),
       expect.anything()
     );
     expect(challenge.name).toBe('Login Bypass');

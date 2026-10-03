@@ -1,14 +1,14 @@
 import { apiRequest } from '../lib/api';
 
 /**
- * Single source of truth for the new challenge catalog prefix.
- * NOTE: unlike the rest of the REST surface (`/api/v1/*`), these endpoints
- * are intentionally NOT versioned. Change this constant if that ever moves.
+ * Single source of truth for the challenge catalog prefix.
+ * Verified against the running backend (academiahacking_ucncqbo): the catalog
+ * lives under `/api/v1/challenges`; the unversioned `/api/challenges` returns 404.
  */
-export const CHALLENGES_ENDPOINT = '/api/challenges';
+export const CHALLENGES_ENDPOINT = '/api/v1/challenges';
 
 /**
- * Challenge as exposed by `GET /api/challenges` and `GET /api/challenges/{id}`.
+ * Challenge as exposed by `GET /api/v1/challenges` and `GET /api/v1/challenges/{id}`.
  * Only `id` and `name` are treated as required: the backend contract for the
  * optional metadata is documented but not yet verifiable from this repo.
  */
@@ -57,7 +57,7 @@ export function normalizeChallenge(raw: unknown): CtfCatalogChallenge | null {
   };
 }
 
-/** GET /api/challenges — read-only catalog listing. */
+/** GET /api/v1/challenges — read-only catalog listing. */
 export async function getChallenges(): Promise<CtfCatalogChallenge[]> {
   const payload = await apiRequest<unknown>(CHALLENGES_ENDPOINT);
   return unwrapList(payload)
@@ -65,7 +65,7 @@ export async function getChallenges(): Promise<CtfCatalogChallenge[]> {
     .filter((challenge): challenge is CtfCatalogChallenge => challenge !== null);
 }
 
-/** GET /api/challenges/{challenge_id} — single challenge detail. */
+/** GET /api/v1/challenges/{challenge_id} — single challenge detail. */
 export async function getChallenge(challengeId: string): Promise<CtfCatalogChallenge> {
   const payload = await apiRequest<unknown>(
     `${CHALLENGES_ENDPOINT}/${encodeURIComponent(challengeId)}`
