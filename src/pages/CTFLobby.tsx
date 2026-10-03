@@ -102,6 +102,9 @@ const STATUS_OPTIONS: { key: StatusFilter; label: string }[] = [
   { key: "SOLVED", label: "Resueltos" },
 ];
 
+/** Only absolute http(s) URLs can be opened in a new tab; relative paths would hit this SPA instead of the lab. */
+const isLaunchableUrl = (url: string) => /^https?:\/\//i.test(url);
+
 const difficultyRank = (d: string) => {
   const idx = DIFFICULTY_ORDER.indexOf(d.toUpperCase() as Difficulty);
   return idx === -1 ? DIFFICULTY_ORDER.length : idx;
@@ -873,21 +876,30 @@ const CTFLobby = () => {
                 </span>
               </div>
 
-              {selectedChallenge.target_url && (
-                <div className="mb-6 p-3 bg-blue-950/30 border border-blue-500/40 rounded-xl flex items-center justify-between text-xs">
-                  <span className="text-blue-300 truncate mr-2">
-                    Target URL: {selectedChallenge.target_url}
-                  </span>
+              {selectedChallenge.target_url &&
+                (isLaunchableUrl(selectedChallenge.target_url) ? (
                   <a
                     href={selectedChallenge.target_url}
                     target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-blue-400 hover:underline font-bold"
+                    rel="noopener noreferrer"
+                    className="mb-6 flex items-center justify-between gap-3 p-3 bg-[#00ff41]/10 border border-[#00ff41] rounded-xl text-xs hover:bg-[#00ff41]/20 transition-all"
                   >
-                    Abrir <ExternalLink className="w-3 h-3" />
+                    <span className="text-gray-300 truncate">
+                      {selectedChallenge.target_url}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-[#00ff41] font-black shrink-0">
+                      Abrir reto <ExternalLink className="w-3.5 h-3.5" />
+                    </span>
                   </a>
-                </div>
-              )}
+                ) : (
+                  <p
+                    role="status"
+                    className="mb-6 p-3 text-xs text-yellow-200/90 bg-yellow-500/5 border border-yellow-500/30 rounded-xl"
+                  >
+                    El laboratorio de este reto aún no tiene una URL pública
+                    configurada.
+                  </p>
+                ))}
 
               <div className="flex justify-end gap-3">
                 <button

@@ -144,6 +144,50 @@ describe('CTFLobby page', () => {
     expect(await screen.findByText('SQLi Login Bypass')).toBeInTheDocument();
   });
 
+  it('opens the real lab in a new tab when the challenge has an absolute target_url', async () => {
+    const user = userEvent.setup();
+    mocks.getChallenges.mockResolvedValue([
+      make({ id: '9', slug: 'web-009', title: 'Lab Reto', target_url: 'https://ctf.example.com/web-009/' }),
+    ]);
+    render(<CTFLobby />);
+    await screen.findByText('Lab Reto');
+
+    await user.click(screen.getByRole('button', { name: /lanzar reto/i }));
+
+    const link = within(screen.getByRole('dialog')).getByRole('link', { name: /abrir reto/i });
+    expect(link).toHaveAttribute('href', 'https://ctf.example.com/web-009/');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
+  });
+
+  it('does not render a broken link when target_url is relative (backend base URL not configured)', async () => {
+    const user = userEvent.setup();
+    mocks.getChallenges.mockResolvedValue([
+      make({ id: '9', slug: 'web-009', title: 'Lab Reto', target_url: '/web-009/' }),
+    ]);
+    render(<CTFLobby />);
+    await screen.findByText('Lab Reto');
+
+    await user.click(screen.getByRole('button', { name: /lanzar reto/i }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).queryByRole('link', { name: /abrir reto/i })).not.toBeInTheDocument();
+    expect(within(dialog).getByRole('status')).toHaveTextContent(/url pública/i);
+  });
+
+  it('refuses to link non-http(s) schemes such as javascript:', async () => {
+    const user = userEvent.setup();
+    mocks.getChallenges.mockResolvedValue([
+      make({ id: '9', slug: 'web-009', title: 'Lab Reto', target_url: 'javascript:alert(1)' }),
+    ]);
+    render(<CTFLobby />);
+    await screen.findByText('Lab Reto');
+
+    await user.click(screen.getByRole('button', { name: /lanzar reto/i }));
+
+    expect(within(screen.getByRole('dialog')).queryByRole('link', { name: /abrir reto/i })).not.toBeInTheDocument();
+  });
+
   it('does not fetch anything when there is no session', async () => {
     localStorage.clear();
     render(<CTFLobby />);
