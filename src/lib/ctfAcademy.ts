@@ -134,8 +134,20 @@ export const formatDuration = (durationMs: number): string => {
   return `${seconds}s`;
 };
 
-export const formatDate = (timestampMs: number): string => {
-  return new Date(timestampMs).toLocaleDateString('es-CL', {
+export const formatDate = (value: number | string | null | undefined): string => {
+  if (value === null || value === undefined || value === '') return '—';
+
+  // Accept epoch milliseconds (number or numeric string) and ISO date strings.
+  let date: Date;
+  if (typeof value === 'number') {
+    date = new Date(value);
+  } else {
+    const trimmed = value.trim();
+    date = /^\d+$/.test(trimmed) ? new Date(Number(trimmed)) : new Date(trimmed);
+  }
+  if (Number.isNaN(date.getTime())) return '—';
+
+  return date.toLocaleDateString('es-CL', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

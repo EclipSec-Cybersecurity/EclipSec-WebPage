@@ -323,7 +323,7 @@ const CTFProfile = () => {
                 <p className="text-xs text-gray-400 flex items-center justify-center sm:justify-start gap-2 mb-3">
                   <span>Nacionalidad: <strong className="text-gray-200">{displayUser.nationality}</strong></span>
                   <span>•</span>
-                  <span>Registrado: <strong className="text-gray-200">{displayUser.createdAt ? formatDate(Number(displayUser.createdAt)) : 'Reciente'}</strong></span>
+                  <span>Registrado: <strong className="text-gray-200">{displayUser.createdAt ? formatDate(displayUser.createdAt) : 'Reciente'}</strong></span>
                 </p>
 
                 {/* Dynamic Rank Badge */}
@@ -516,7 +516,7 @@ const CTFProfile = () => {
                               {solve.category}
                             </span>
                             <span>•</span>
-                            <span>{solve.solved_at ? formatDate(Number(solve.solved_at)) : 'Reciente'}</span>
+                            <span>{solve.solved_at ? formatDate(solve.solved_at) : 'Reciente'}</span>
                           </div>
                         </div>
                       </div>

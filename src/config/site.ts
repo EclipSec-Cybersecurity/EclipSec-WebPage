@@ -30,6 +30,7 @@ export const NAV_ROUTES = {
     ctf: '/ctf',
     ctfLobby: '/ctf/lobby',
     ctfChallenges: '/ctf/challenges',
+    ctfLeaderboard: '/ctf/leaderboard',
     ctfProfile: '/ctf/profile',
     ctfDashboard: '/ctf/profile',
 } as const;
